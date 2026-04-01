@@ -12,8 +12,10 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
   const user = createAsync(() => getUser(), { deferStream: true });
 
   return (
-    <CurrentUserProvider currentUser={user()}>
-      {props.children}
-    </CurrentUserProvider>
+    <main class="w-full">
+      <CurrentUserProvider currentUser={user()}>
+        {props.children}
+      </CurrentUserProvider>
+    </main>
   )
 }
