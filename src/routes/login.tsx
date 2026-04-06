@@ -1,42 +1,40 @@
-import {
-  useSubmission,
-  type RouteSectionProps
-} from "@solidjs/router";
-import { Show } from "solid-js";
-import { loginOrRegister } from "~/lib";
+import { useSubmission, type RouteSectionProps } from '@solidjs/router';
+import { Show } from 'solid-js';
+import { loginAction } from '~/lib';
+import { Button } from '~/components/ui/button';
+import { TextField, TextFieldInput, TextFieldLabel } from '~/components/ui/text-field';
+import { ModeToggle } from '~/components/ModeToggle';
 
-export default function Login(props: RouteSectionProps) {
-  const loggingIn = useSubmission(loginOrRegister);
-
+export default function Login(props: Readonly<RouteSectionProps>) {
+  const loggingIn = useSubmission(loginAction);
   return (
-    <main>
-      <h1>Login</h1>
-      <form action={loginOrRegister} method="post">
-        <input type="hidden" name="redirectTo" value={props.params.redirectTo ?? "/"} />
-        <fieldset>
-          <legend>Login or Register?</legend>
-          <label>
-            <input type="radio" name="loginType" value="login" checked={true} /> Login
-          </label>
-          <label>
-            <input type="radio" name="loginType" value="register" /> Register
-          </label>
-        </fieldset>
-        <div>
-          <label for="username-input">Username</label>
-          <input name="username" placeholder="kody" />
+    <main class="w-full h-screen">
+      <ModeToggle />
+      <div class="flex flex-col items-center justify-center h-9/10">
+        <h1>Login</h1>
+        <div class="w-72">
+          <form action={loginAction} method="post" class="flex flex-col gap-2">
+            <input type="hidden" name="redirectTo" value={props.params.redirectTo ?? '/'} />
+
+            <TextField name="username" class="w-full">
+              <TextFieldLabel>Username</TextFieldLabel>
+              <TextFieldInput placeholder="kody" />
+            </TextField>
+            <TextField name="password">
+              <TextFieldLabel>Password</TextFieldLabel>
+              <TextFieldInput type="password" placeholder="twixrox" />
+            </TextField>
+            <Button type="submit" size="xs">
+              Login
+            </Button>
+            <Show when={loggingIn.result}>
+              <p style={{ color: 'red' }} role="alert" id="error-message">
+                {loggingIn.result!.message}
+              </p>
+            </Show>
+          </form>
         </div>
-        <div>
-          <label for="password-input">Password</label>
-          <input name="password" type="password" placeholder="twixrox" />
-        </div>
-        <button type="submit">Login</button>
-        <Show when={loggingIn.result}>
-          <p style={{color: "red"}} role="alert" id="error-message">
-            {loggingIn.result!.message}
-          </p>
-        </Show>
-      </form>
+      </div>
     </main>
   );
 }
