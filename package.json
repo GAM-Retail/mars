@@ -1,5 +1,5 @@
 {
-  "name": "example-with-prisma",
+  "name": "mars",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
