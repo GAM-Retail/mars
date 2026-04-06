@@ -9,7 +9,7 @@ import { cn } from '~/lib/utils';
 
 type TextFieldRootProps<T extends ValidComponent = 'div'> =
   TextFieldPrimitive.TextFieldRootProps<T> & {
-    class: string | undefined;
+    class?: string;
   };
 
 const TextField = <T extends ValidComponent = 'div'>(
@@ -21,7 +21,7 @@ const TextField = <T extends ValidComponent = 'div'>(
 
 type TextFieldInputProps<T extends ValidComponent = 'input'> =
   TextFieldPrimitive.TextFieldInputProps<T> & {
-    class: string | undefined;
+    class?: string;
     type?:
       | 'button'
       | 'checkbox'
@@ -65,7 +65,7 @@ const TextFieldInput = <T extends ValidComponent = 'input'>(
 };
 
 type TextFieldTextAreaProps<T extends ValidComponent = 'textarea'> =
-  TextFieldPrimitive.TextFieldTextAreaProps<T> & { class: string | undefined };
+  TextFieldPrimitive.TextFieldTextAreaProps<T> & { class?: string };
 
 const TextFieldTextArea = <T extends ValidComponent = 'textarea'>(
   props: PolymorphicProps<T, TextFieldTextAreaProps<T>>,
@@ -99,7 +99,7 @@ const labelVariants = cva(
 );
 
 type TextFieldLabelProps<T extends ValidComponent = 'label'> =
-  TextFieldPrimitive.TextFieldLabelProps<T> & { class: string | undefined };
+  TextFieldPrimitive.TextFieldLabelProps<T> & { class?: string };
 
 const TextFieldLabel = <T extends ValidComponent = 'label'>(
   props: PolymorphicProps<T, TextFieldLabelProps<T>>,
@@ -110,7 +110,7 @@ const TextFieldLabel = <T extends ValidComponent = 'label'>(
 
 type TextFieldDescriptionProps<T extends ValidComponent = 'div'> =
   TextFieldPrimitive.TextFieldDescriptionProps<T> & {
-    class: string | undefined;
+    class?: string;
   };
 
 const TextFieldDescription = <T extends ValidComponent = 'div'>(
@@ -127,7 +127,7 @@ const TextFieldDescription = <T extends ValidComponent = 'div'>(
 
 type TextFieldErrorMessageProps<T extends ValidComponent = 'div'> =
   TextFieldPrimitive.TextFieldErrorMessageProps<T> & {
-    class: string | undefined;
+    class?: string;
   };
 
 const TextFieldErrorMessage = <T extends ValidComponent = 'div'>(
