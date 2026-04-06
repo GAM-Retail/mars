@@ -21,7 +21,7 @@ const DialogPortal: Component<DialogPrimitive.DialogPortalProps> = (props) => {
 };
 
 type DialogOverlayProps<T extends ValidComponent = 'div'> =
-  DialogPrimitive.DialogOverlayProps<T> & { class: string | undefined };
+  DialogPrimitive.DialogOverlayProps<T> & { class?: string };
 
 const DialogOverlay = <T extends ValidComponent = 'div'>(
   props: PolymorphicProps<T, DialogOverlayProps<T>>,
@@ -40,7 +40,7 @@ const DialogOverlay = <T extends ValidComponent = 'div'>(
 
 type DialogContentProps<T extends ValidComponent = 'div'> =
   DialogPrimitive.DialogContentProps<T> & {
-    class: string | undefined;
+    class?: string;
     children?: JSX.Element;
   };
 
@@ -98,7 +98,7 @@ const DialogFooter: Component<ComponentProps<'div'>> = (props) => {
 };
 
 type DialogTitleProps<T extends ValidComponent = 'h2'> = DialogPrimitive.DialogTitleProps<T> & {
-  class: string | undefined;
+  class?: string;
 };
 
 const DialogTitle = <T extends ValidComponent = 'h2'>(
@@ -115,7 +115,7 @@ const DialogTitle = <T extends ValidComponent = 'h2'>(
 
 type DialogDescriptionProps<T extends ValidComponent = 'p'> =
   DialogPrimitive.DialogDescriptionProps<T> & {
-    class: string | undefined;
+    class?: string;
   };
 
 const DialogDescription = <T extends ValidComponent = 'p'>(
