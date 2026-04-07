@@ -1,12 +1,12 @@
 import { action, query, redirect } from '@solidjs/router';
-import { db } from './db';
+import db from './db';
 import {
   getSession,
   login,
   logout as logoutSession,
   validatePassword,
-  validateUsername,
-} from './server';
+  validateNikOrEmail,
+} from './auth.server';
 
 export const getUser = query(async () => {
   'use server';
@@ -16,22 +16,24 @@ export const getUser = query(async () => {
     if (userId === undefined) throw new Error('User not found');
     const user = await db.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found');
-    return { id: user.id, username: user.username };
+    return { id: user.id, email: user.email, nik: user.nik, name: user.name };
   } catch {
     await logoutSession();
-    throw redirect('/login');
+    return null;
   }
 }, 'user');
 
 export const loginAction = action(async (formData: FormData) => {
   'use server';
-  const username = String(formData.get('username'));
+  const nikOrEmail = String(formData.get('nikOrEmail'));
+  const validNikOrEmail = validateNikOrEmail(nikOrEmail);
   const password = String(formData.get('password'));
-  const error = validateUsername(username) || validatePassword(password);
+  const error = validNikOrEmail?.message || validatePassword(password);
   if (error) return new Error(error);
+  if (!validNikOrEmail.type) return new Error('Invalid login');
 
   try {
-    const user = await login(username, password);
+    const user = await login(nikOrEmail, password, validNikOrEmail.type);
     const session = await getSession();
     await session.update((d) => {
       d.userId = user.id;
