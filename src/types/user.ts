@@ -1,1 +1,1 @@
-export type CurrentUser = { id: string, username: string}
+export type CurrentUser = { id: string; name: string; email: string; nik: string };
