@@ -11,11 +11,24 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  nik      String @unique
-  password String
-  email    String @unique
-  name     String
+  id         String     @id @default(uuid())
+  nik        String     @unique
+  password   String
+  email      String     @unique
+  name       String
+  facilities Facility[]
 
   @@map("tm_users")
+}
+
+model Facility {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdByUser User     @relation(fields: [createdBy], references: [id])
+  createdBy     String   @map("created_by")
+
+  @@map("tm_facilities")
 }
