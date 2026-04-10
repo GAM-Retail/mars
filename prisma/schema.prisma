@@ -17,6 +17,7 @@ model User {
   email      String     @unique
   name       String
   facilities Facility[]
+  rooms      Room[]
 
   @@map("tm_users")
 }
@@ -31,4 +32,16 @@ model Facility {
   createdBy     String   @map("created_by")
 
   @@map("tm_facilities")
+}
+
+model Room {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdByUser User     @relation(fields: [createdBy], references: [id])
+  createdBy     String   @map("created_by")
+
+  @@map("tm_rooms")
 }
