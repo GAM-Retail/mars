@@ -21,7 +21,7 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
         <CurrentUserProvider currentUser={user()}>
           <SidebarProvider>
             <AppSidebar />
-            <div>
+            <div class="w-full">
               <SidebarRail />
               <SidebarTrigger />
               {props.children}
