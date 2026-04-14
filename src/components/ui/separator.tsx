@@ -7,7 +7,7 @@ import * as SeparatorPrimitive from '@kobalte/core/separator';
 import { cn } from '~/lib/utils';
 
 type SeparatorRootProps<T extends ValidComponent = 'hr'> =
-  SeparatorPrimitive.SeparatorRootProps<T> & { class: string | undefined };
+  SeparatorPrimitive.SeparatorRootProps<T> & { class?: string };
 
 const Separator = <T extends ValidComponent = 'hr'>(
   props: PolymorphicProps<T, SeparatorRootProps<T>>,
