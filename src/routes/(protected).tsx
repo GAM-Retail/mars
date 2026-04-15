@@ -56,7 +56,12 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
 
       const match = firstMatchChildren.find((m) => m.info?.breadcrumb?.href === href);
 
-      return match?.info?.breadcrumb ?? { href, label: segments[i].slice(0, 17).concat('...') };
+      return (
+        match?.info?.breadcrumb ?? {
+          href,
+          label: segments[i].slice(0, 17).concat(segments[i].length > 17 ? '...' : ''),
+        }
+      );
     });
   });
   return (
