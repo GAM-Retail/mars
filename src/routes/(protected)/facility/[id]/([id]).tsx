@@ -50,9 +50,9 @@ export const route = {
 export default function DetailFacility() {
   const params = useParams<{ id: string }>();
   const facilityResource = createAsync(() => getFacilityById(params.id));
-  const facility = useStableResource(() => facilityResource()?.data?.facility);
+  const { data: facility, loading } = useStableResource(() => facilityResource()?.data?.facility);
   return (
-    <Show when={facilityResource()} fallback={<Loading />}>
+    <Show when={facilityResource() && !loading()} fallback={<Loading />}>
       <Show when={facility()} fallback={<NotFound label="Facility" href="/facility" />}>
         {(data) => (
           <div class="w-full flex justify-center">
