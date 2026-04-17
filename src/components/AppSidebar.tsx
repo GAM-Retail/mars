@@ -76,7 +76,7 @@ const items: SidebarItem[] = [
       },
       {
         title: 'Facility',
-        url: '#',
+        url: '/facility',
         icon: LampDesk,
       },
       {
