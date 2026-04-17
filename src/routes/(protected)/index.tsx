@@ -1,6 +1,17 @@
 import { logout } from '~/lib';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
+import { RouteDefinition } from '@solidjs/router';
 
+export const route = {
+  info: {
+    title: 'Home',
+    description: 'Home page',
+    breadcrumb: {
+      href: '/',
+      label: 'Home',
+    },
+  },
+} satisfies RouteDefinition;
 export default function Home() {
   const userContext = useCurrentUser();
   return (
