@@ -4,11 +4,20 @@ import { createEffect, createSignal } from 'solid-js';
 // Rule of DUMB: SolidJS reactivity is just too fast
 export function useStableResource<T>(resource: () => T | undefined) {
   const [state, setState] = createSignal<T | undefined>();
+  const [loading, setLoading] = createSignal(true);
 
   createEffect(() => {
     const value = resource();
-    if (value) setState(() => value);
+    if (value) {
+      setState(() => value);
+      setLoading(() => false);
+    } else {
+      setLoading(() => true);
+    }
   });
 
-  return state;
+  return {
+    data: state,
+    loading,
+  };
 }
