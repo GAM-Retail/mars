@@ -11,13 +11,14 @@ datasource db {
 }
 
 model User {
-  id         String     @id @default(uuid())
-  nik        String     @unique
-  password   String
-  email      String     @unique
-  name       String
-  facilities Facility[]
-  rooms      Room[]
+  id                  String               @id @default(uuid())
+  nik                 String               @unique
+  password            String
+  email               String               @unique
+  name                String
+  facilities          Facility[]
+  rooms               Room[]
+  roomPersonInCharges RoomPersonInCharge[]
 
   @@map("tm_users")
 }
@@ -36,14 +37,17 @@ model Facility {
 }
 
 model Room {
-  id             String         @id @default(uuid())
-  name           String
-  description    String?
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-  createdByUser  User           @relation(fields: [createdBy], references: [id])
-  createdBy      String         @map("created_by")
-  roomFacilities RoomFacility[]
+  id                  String               @id @default(uuid())
+  name                String
+  description         String?
+  location            String
+  capacity            Int
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  createdByUser       User                 @relation(fields: [createdBy], references: [id])
+  createdBy           String               @map("created_by")
+  roomFacilities      RoomFacility[]
+  roomPersonInCharges RoomPersonInCharge[]
 
   @@map("tm_rooms")
 }
@@ -56,4 +60,14 @@ model RoomFacility {
   facilityId String   @map("facility_id")
 
   @@map("tm_room_facilities")
+}
+
+model RoomPersonInCharge {
+  id               String @id @default(uuid())
+  room             Room   @relation(fields: [roomId], references: [id])
+  roomId           String @map("room_id")
+  personInCharge   User   @relation(fields: [personInChargeId], references: [id])
+  personInChargeId String @map("person_in_charge_id")
+
+  @@map("tm_room_person_in_charges")
 }
