@@ -34,6 +34,7 @@ import {
 } from '~/components/ui/dropdown-menu';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { logout } from '~/lib';
+import { ModeToggle } from '~/components/ModeToggle';
 
 type SidebarItem = {
   groupName: string;
@@ -95,12 +96,15 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div class="flex items-center gap-2 justify-">
-          <img src="/gramedia.webp" alt="Gramedia Logo" class="h-10 w-10" />
-          <span>
-            <p class="text-lg font-semibold">MARS</p>
-            <p class="text-xs">V0.1</p>
+        <div class="flex items-center gap-2 justify-between">
+          <span class="flex items-center gap-2">
+            <img src="/gramedia.webp" alt="Gramedia Logo" class="h-10 w-10" />
+            <span>
+              <p class="text-lg font-semibold">MARS</p>
+              <p class="text-xs">V0.1</p>
+            </span>
           </span>
+          <ModeToggle />
         </div>
         <p class=" text-center">Meeting Area Reservation System</p>
       </SidebarHeader>
