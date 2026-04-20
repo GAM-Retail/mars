@@ -54,9 +54,9 @@ model Room {
 
 model RoomFacility {
   id         String   @id @default(uuid())
-  room       Room     @relation(fields: [roomId], references: [id])
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   roomId     String   @map("room_id")
-  facility   Facility @relation(fields: [facilityId], references: [id])
+  facility   Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
   facilityId String   @map("facility_id")
 
   @@map("tm_room_facilities")
@@ -64,9 +64,9 @@ model RoomFacility {
 
 model RoomPersonInCharge {
   id               String @id @default(uuid())
-  room             Room   @relation(fields: [roomId], references: [id])
+  room             Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
   roomId           String @map("room_id")
-  personInCharge   User   @relation(fields: [personInChargeId], references: [id])
+  personInCharge   User   @relation(fields: [personInChargeId], references: [id], onDelete: Cascade)
   personInChargeId String @map("person_in_charge_id")
 
   @@map("tm_room_person_in_charges")
