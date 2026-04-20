@@ -39,3 +39,19 @@ export const getById = async (id: string) => {
 };
 
 export const deleteById = async (id: string) => db.facility.delete({ where: { id } });
+
+export const getRoomsByFacilityId = async (facilityId: string) => {
+  return db.roomFacility.findMany({
+    where: { facilityId },
+    include: {
+      room: {
+        include: {
+          createdByUser: true,
+          roomFacilities: {
+            include: { facility: true },
+          },
+        },
+      },
+    },
+  });
+};

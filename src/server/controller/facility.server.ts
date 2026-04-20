@@ -1,5 +1,12 @@
 import { action, query } from '@solidjs/router';
-import { add, deleteById, edit, getAll, getById } from '~/server/repository/facility.server';
+import {
+  add,
+  deleteById,
+  edit,
+  getAll,
+  getById,
+  getRoomsByFacilityId as getRoomsByFacilityIdRepo,
+} from '~/server/repository/facility.server';
 import { getSession } from '~/lib/auth.server';
 
 export const addFacility = action(async (values: { name: string; description?: string }) => {
@@ -102,3 +109,14 @@ export const getFacilityById = query(async (id: string) => {
     },
   };
 }, 'getFacilityById');
+
+export const getRoomsByFacilityId = query(async (id: string) => {
+  'use server';
+  const roomFacilities = await getRoomsByFacilityIdRepo(id);
+  return {
+    status: 'success',
+    data: {
+      roomFacilities,
+    },
+  };
+}, 'getRoomsByFacilityId');
