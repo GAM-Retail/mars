@@ -82,7 +82,7 @@ const items: SidebarItem[] = [
       },
       {
         title: 'Room',
-        url: '#',
+        url: '/room',
         icon: BookKey,
       },
     ],
