@@ -9,7 +9,7 @@ import {
   removeFacilityFromRoom,
   removePersonInCharge,
 } from '~/server/repository/room.server';
-import { action, query } from '@solidjs/router';
+import { action, json, query } from '@solidjs/router';
 import { getAllFacility } from '~/server/controller/facility.server';
 import { getSession } from '~/lib/auth.server';
 
@@ -76,9 +76,7 @@ export const deleteRoom = action(async (id: string) => {
 
   await deleteById(id);
 
-  return {
-    status: 'success',
-  };
+  return json({ ok: true, status: 'success' }, { revalidate: [] });
 });
 
 export const editRoom = action(
