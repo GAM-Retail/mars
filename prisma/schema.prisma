@@ -29,8 +29,8 @@ model Facility {
   description    String?
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
-  createdByUser  User           @relation(fields: [createdBy], references: [id])
-  createdBy      String         @map("created_by")
+  createdByUser  User?          @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdBy      String?        @map("created_by")
   roomFacilities RoomFacility[]
 
   @@map("tm_facilities")
@@ -44,8 +44,8 @@ model Room {
   capacity            Int
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
-  createdByUser       User                 @relation(fields: [createdBy], references: [id])
-  createdBy           String               @map("created_by")
+  createdByUser       User?                @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdBy           String?              @map("created_by")
   roomFacilities      RoomFacility[]
   roomPersonInCharges RoomPersonInCharge[]
 
