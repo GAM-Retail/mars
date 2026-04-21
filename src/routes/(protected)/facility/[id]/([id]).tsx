@@ -4,7 +4,6 @@ import { For, Show } from 'solid-js';
 import { CalendarPlus, CircleUser, Building } from 'lucide-solid';
 import NotFound from '~/components/NotFound';
 import Loading from '~/components/Loading';
-import { useStableResource } from '~/hooks/useStableResource';
 import DetailFacilityDropdown from '~/routes/(protected)/facility/[id]/components/DetailFacilityDropdown';
 
 export const route = {
@@ -26,11 +25,12 @@ export default function DetailFacility() {
   const params = useParams<{ id: string }>();
   const facilityResource = createAsync(() => getFacilityById(params.id));
   const roomsResource = createAsync(() => getRoomsByFacilityId(params.id));
-  const { data: facility, loading } = useStableResource(() => facilityResource()?.data?.facility);
-  const { data: rooms } = useStableResource(() => roomsResource()?.data?.roomFacilities);
   return (
-    <Show when={facilityResource() && !loading()} fallback={<Loading />}>
-      <Show when={facility()} fallback={<NotFound label="Facility" href="/facility" />}>
+    <Show when={facilityResource()} fallback={<Loading />}>
+      <Show
+        when={facilityResource()?.data?.facility}
+        fallback={<NotFound label="Facility" href="/facility" />}
+      >
         {(data) => (
           <div class="mt-10 px-4 flex flex-col gap-6">
             <div class="flex justify-between items-stretch border-b pb-4">
@@ -69,14 +69,14 @@ export default function DetailFacility() {
                 <div>
                   <p class="text-xs text-muted-foreground mb-2">Rooms with this facility</p>
                   <Show
-                    when={rooms() && rooms()!.length > 0}
+                    when={roomsResource()?.data?.roomFacilities?.length}
                     fallback={
                       <p class="text-sm text-muted-foreground">No rooms have this facility</p>
                     }
                   >
                     <div class="relative">
                       <div class="flex flex-col gap-2 h-60 overflow-y-auto pr-2">
-                        <For each={rooms()}>
+                        <For each={roomsResource()?.data?.roomFacilities}>
                           {(rf) => (
                             <A
                               href={`/room/${rf.room.id}`}
