@@ -16,11 +16,19 @@ model User {
   password            String
   email               String               @unique
   name                String
+  role                UserRole
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
   facilities          Facility[]
   rooms               Room[]
   roomPersonInCharges RoomPersonInCharge[]
 
   @@map("tm_users")
+}
+
+enum UserRole {
+  SUPERADMIN
+  ADMIN
 }
 
 model Facility {
