@@ -1,4 +1,4 @@
-import { action, query } from '@solidjs/router';
+import { action, json, query } from '@solidjs/router';
 import {
   add,
   deleteById,
@@ -83,9 +83,7 @@ export const deleteFacility = action(async (id: string) => {
 
   await deleteById(id);
 
-  return {
-    status: 'success',
-  };
+  return json({ ok: true, status: 'success' }, { revalidate: [] });
 });
 
 export const getAllFacility = query(async () => {
