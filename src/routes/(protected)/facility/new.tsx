@@ -34,7 +34,9 @@ export default function NewFacility() {
       });
       navigate('/facility');
     } else {
-      toast('Failed to create facility');
+      toast('Failed to create facility', {
+        description: response.message,
+      });
     }
   };
   return (

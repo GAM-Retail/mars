@@ -34,7 +34,9 @@ export default function NewRoom() {
       });
       navigate('/room');
     } else {
-      toast('Failed to create room');
+      toast('Failed to create room', {
+        description: response.message,
+      });
     }
   };
   return (

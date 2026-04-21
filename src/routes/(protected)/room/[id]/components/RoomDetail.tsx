@@ -48,7 +48,9 @@ export default function RoomDetail(props: Readonly<Props>) {
       });
       navigate('/room');
     } else {
-      toast('Failed to delete room');
+      toast('Failed to delete room', {
+        description: response.message,
+      });
     }
   };
 

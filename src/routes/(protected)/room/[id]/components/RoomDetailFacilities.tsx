@@ -34,7 +34,9 @@ export default function RoomDetailFacilities(props: Readonly<Props>) {
     if (response.status === 'success') {
       toast('Facility added');
     } else {
-      toast('Failed to add facility');
+      toast('Failed to add facility', {
+        description: response.message,
+      });
     }
   };
 
@@ -43,7 +45,9 @@ export default function RoomDetailFacilities(props: Readonly<Props>) {
     if (response.status === 'success') {
       toast('Facility removed');
     } else {
-      toast('Failed to remove facility');
+      toast('Failed to remove facility', {
+        description: response.message,
+      });
     }
   };
 

@@ -35,7 +35,9 @@ export default function RoomDetailPersonInCharge(props: Readonly<Props>) {
     if (response.status === 'success') {
       toast('Person in charge added');
     } else {
-      toast('Failed to add person in charge');
+      toast('Failed to add person in charge', {
+        description: response.message,
+      });
     }
   };
 
@@ -44,7 +46,9 @@ export default function RoomDetailPersonInCharge(props: Readonly<Props>) {
     if (response.status === 'success') {
       toast('Person in charge removed');
     } else {
-      toast('Failed to remove person in charge');
+      toast('Failed to remove person in charge', {
+        description: response.message,
+      });
     }
   };
 

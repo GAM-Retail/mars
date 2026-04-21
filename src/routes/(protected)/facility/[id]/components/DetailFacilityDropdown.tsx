@@ -28,14 +28,15 @@ export default function DetailFacilityDropdown(props: Readonly<{ facility: Facil
   const navigate = useNavigate();
   const onDelete = async () => {
     const response = await deleteFacilityAction(props.facility.id);
-
     if (response.status === 'success') {
       toast('Facility has been deleted', {
         description: `Facility ${props.facility.name} has been deleted successfully.`,
       });
       navigate('/facility');
     } else {
-      toast('Failed to delete facility');
+      toast('Failed to delete facility', {
+        description: response.message,
+      });
     }
   };
   return (

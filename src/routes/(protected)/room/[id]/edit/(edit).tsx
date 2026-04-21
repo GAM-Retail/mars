@@ -41,7 +41,9 @@ export default function EditRoom() {
       });
       navigate(`/room/${response.data.room.id}`);
     } else {
-      toast('Failed to edit room');
+      toast('Failed to edit room', {
+        description: response.message,
+      });
     }
   };
   return (

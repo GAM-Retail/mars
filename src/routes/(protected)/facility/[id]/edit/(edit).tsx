@@ -41,7 +41,9 @@ export default function EditFacility() {
       });
       navigate(`/facility/${response.data.facility.id}`);
     } else {
-      toast('Failed to create facility');
+      toast('Failed to create facility', {
+        description: response.message,
+      });
     }
   };
   return (
