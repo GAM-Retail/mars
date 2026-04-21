@@ -1,4 +1,4 @@
-import { action, json, query } from '@solidjs/router';
+import { action, CustomResponse, json, query } from '@solidjs/router';
 import {
   add,
   deleteById,
@@ -7,47 +7,70 @@ import {
   getById,
   getRoomsByFacilityId as getRoomsByFacilityIdRepo,
 } from '~/server/repository/facility.server';
-import { getSession } from '~/lib/auth.server';
+import { validateSession } from '~/server/lib';
+import { Facility } from '~/generated/prisma/client';
+import ActionResponse from '~/server/types/actionResponse';
 
-export const addFacility = action(async (values: { name: string; description?: string }) => {
+export const addFacility = action<
+  Array<{ name: string; description?: string }>,
+  ActionResponse<{ facility: Facility }>
+>(async (values) => {
   'use server';
-  if (!values.name) {
-    throw new Error('Name is required');
-  }
-
-  const session = await getSession();
-  const userId = session.data.userId;
-  if (!userId) throw new Error('Unauthorized');
-
-  const newFacility = await add({ ...values, createdBy: userId });
-
-  return {
-    status: 'success',
-    data: {
-      facility: newFacility,
-    },
-  };
-});
-
-export const editFacility = action(
-  async (values: { id: string; name: string; description?: string }) => {
-    'use server';
+  try {
     if (!values.name) {
-      throw new Error('Name is required');
+      return {
+        status: 'error',
+        message: 'Name is required',
+      };
     }
 
-    const session = await getSession();
-    const userId = session.data.userId;
-    if (!userId) throw new Error('Unauthorized');
+    const userId = await validateSession();
+
+    const newFacility = await add({ ...values, createdBy: userId });
+
+    return {
+      status: 'success',
+      data: {
+        facility: newFacility,
+      },
+    };
+  } catch (error: unknown) {
+    return {
+      status: 'error',
+      message: (error as Error).message,
+    };
+  }
+});
+
+export const editFacility = action<
+  Array<{ id: string; name: string; description?: string }>,
+  ActionResponse<{ facility: Facility }>
+>(async (values) => {
+  'use server';
+  try {
+    if (!values.name) {
+      return {
+        status: 'error',
+        message: 'Name is required',
+      };
+    }
+
+    const userId = await validateSession();
 
     const currentFacility = await getById(values.id);
 
     if (!currentFacility) {
-      throw new Error('Facility not found');
+      return {
+        status: 'error',
+        message: 'Facility not found',
+      };
     }
 
     if (currentFacility.createdBy !== userId) {
-      throw new Error('Unauthorized');
+      return {
+        status: 'error',
+        message: 'Unauthorized',
+      };
     }
 
     const editedFacility = await edit({ ...values });
@@ -58,32 +81,55 @@ export const editFacility = action(
         facility: editedFacility,
       },
     };
-  },
-);
+  } catch (error: unknown) {
+    return {
+      status: 'error',
+      message: (error as Error).message,
+    };
+  }
+});
 
-export const deleteFacility = action(async (id: string) => {
+export const deleteFacility = action<
+  Array<string>,
+  CustomResponse<{ status: 'success' }> | { status: 'error'; message: string }
+>(async (id: string) => {
   'use server';
 
-  if (!id) throw new Error('Id is required');
+  try {
+    if (!id) {
+      return {
+        status: 'error',
+        message: 'Id is required',
+      };
+    }
 
-  const session = await getSession();
-  const userId = session.data.userId;
+    const userId = await validateSession();
 
-  if (!userId) throw new Error('Unauthorized');
+    const currentFacility = await getById(id);
 
-  const currentFacility = await getById(id);
+    if (!currentFacility) {
+      return {
+        status: 'error',
+        message: 'Facility not found',
+      };
+    }
 
-  if (!currentFacility) {
-    throw new Error('Facility not found');
+    if (currentFacility.createdBy !== userId) {
+      return {
+        status: 'error',
+        message: 'Unauthorized',
+      };
+    }
+
+    await deleteById(id);
+
+    return json({ status: 'success' }, { revalidate: [] });
+  } catch (error: unknown) {
+    return {
+      status: 'error',
+      message: (error as Error).message,
+    };
   }
-
-  if (currentFacility.createdBy !== userId) {
-    throw new Error('Unauthorized');
-  }
-
-  await deleteById(id);
-
-  return json({ ok: true, status: 'success' }, { revalidate: [] });
 });
 
 export const getAllFacility = query(async () => {
