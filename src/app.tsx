@@ -5,6 +5,7 @@ import './app.css';
 import { getCookie } from '@solidjs/start/http';
 import { ColorModeProvider, ColorModeScript, cookieStorageManagerSSR } from '@kobalte/core';
 import { isServer } from 'solid-js/web';
+import { MetaProvider } from '@solidjs/meta';
 
 function getServerCookies() {
   'use server';
@@ -15,17 +16,19 @@ function getServerCookies() {
 export default function App() {
   const storageManager = cookieStorageManagerSSR(isServer ? getServerCookies() : document.cookie);
   return (
-    <Router
-      root={(props) => (
-        <>
-          <ColorModeScript storageType={storageManager.type} />
-          <ColorModeProvider storageManager={storageManager}>
-            <Suspense>{props.children}</Suspense>
-          </ColorModeProvider>
-        </>
-      )}
-    >
-      <FileRoutes />
-    </Router>
+    <MetaProvider>
+      <Router
+        root={(props) => (
+          <>
+            <ColorModeScript storageType={storageManager.type} />
+            <ColorModeProvider storageManager={storageManager}>
+              <Suspense>{props.children}</Suspense>
+            </ColorModeProvider>
+          </>
+        )}
+      >
+        <FileRoutes />
+      </Router>
+    </MetaProvider>
   );
 }

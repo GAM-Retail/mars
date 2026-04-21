@@ -10,9 +10,19 @@ const adapter = new PrismaMariaDb({
   user: dbUrl.username,
   password: dbUrl.password,
   database: dbUrl.pathname.replace('/', ''),
-  connectionLimit: 5,
+  connectionLimit: 10,
 });
 
-const prisma = new PrismaClient({ adapter });
+let prisma: PrismaClient;
+
+if (process.env.NODE_ENV === 'production') {
+  prisma = new PrismaClient({ adapter });
+} else {
+  const globalForPrisma = globalThis as unknown as { __prisma?: PrismaClient };
+
+  globalForPrisma.__prisma ??= new PrismaClient({ adapter });
+
+  prisma = globalForPrisma.__prisma;
+}
 
 export default prisma;
