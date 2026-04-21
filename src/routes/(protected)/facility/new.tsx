@@ -1,5 +1,7 @@
 import { A, RouteDefinition, useAction, useNavigate } from '@solidjs/router';
-import FacilityForm, { FacilitySchema } from '~/components/FacilityForm';
+import FacilityForm, {
+  FacilitySchema,
+} from '~/routes/(protected)/facility/components/FacilityForm';
 import { ArrowLeft } from 'lucide-solid';
 import { addFacility } from '~/server/controller/facility.server';
 import { SubmitHandler } from '@formisch/solid';

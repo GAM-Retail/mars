@@ -7,7 +7,9 @@ import {
   useParams,
 } from '@solidjs/router';
 import { ArrowLeft } from 'lucide-solid';
-import FacilityForm, { FacilitySchema } from '~/components/FacilityForm';
+import FacilityForm, {
+  FacilitySchema,
+} from '~/routes/(protected)/facility/components/FacilityForm';
 import { editFacility, getFacilityById } from '~/server/controller/facility.server';
 import { Show } from 'solid-js';
 import { SubmitHandler } from '@formisch/solid';
