@@ -1,11 +1,12 @@
 import { Router } from '@solidjs/router';
 import { FileRoutes } from '@solidjs/start/router';
-import { Suspense } from 'solid-js';
+import { ErrorBoundary, Suspense } from 'solid-js';
 import './app.css';
 import { getCookie } from '@solidjs/start/http';
 import { ColorModeProvider, ColorModeScript, cookieStorageManagerSSR } from '@kobalte/core';
 import { isServer } from 'solid-js/web';
 import { MetaProvider } from '@solidjs/meta';
+import AppCrash from '~/components/AppCrash';
 
 function getServerCookies() {
   'use server';
@@ -22,7 +23,9 @@ export default function App() {
           <>
             <ColorModeScript storageType={storageManager.type} />
             <ColorModeProvider storageManager={storageManager}>
-              <Suspense>{props.children}</Suspense>
+              <ErrorBoundary fallback={(err) => <AppCrash error={err} />}>
+                <Suspense>{props.children}</Suspense>
+              </ErrorBoundary>
             </ColorModeProvider>
           </>
         )}
