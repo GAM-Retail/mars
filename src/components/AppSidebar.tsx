@@ -1,4 +1,4 @@
-import { For } from 'solid-js';
+import { For, Show } from 'solid-js';
 import { A, useAction } from '@solidjs/router';
 
 import {
@@ -21,7 +21,7 @@ import {
   LayoutDashboard,
   LucideIcon,
   Presentation,
-  UserKey,
+  User,
 } from 'lucide-solid';
 import { UserRole } from '~/types';
 import {
@@ -65,16 +65,22 @@ const items: SidebarItem[] = [
         icon: Presentation,
       },
     ],
-    role: ['superadmin'],
+    role: ['ADMIN'],
+  },
+  {
+    groupName: 'Management',
+    items: [
+      {
+        title: 'User Management',
+        url: '/user',
+        icon: User,
+      },
+    ],
+    role: ['SUPERADMIN'],
   },
   {
     groupName: 'Settings',
     items: [
-      {
-        title: 'User Login',
-        url: '#',
-        icon: UserKey,
-      },
       {
         title: 'Facility',
         url: '/facility',
@@ -86,7 +92,7 @@ const items: SidebarItem[] = [
         icon: BookKey,
       },
     ],
-    role: ['superadmin', 'admin'],
+    role: ['SUPERADMIN'],
   },
 ];
 
@@ -111,23 +117,25 @@ export function AppSidebar() {
       <SidebarContent>
         <For each={items}>
           {(item) => (
-            <SidebarGroup>
-              <SidebarGroupLabel>{item.groupName}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <For each={item.items}>
-                    {(item) => (
-                      <SidebarMenuItem>
-                        <SidebarMenuButton as={A} href={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    )}
-                  </For>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            <Show when={item.role.includes(userContext.currentUser?.role as UserRole)}>
+              <SidebarGroup>
+                <SidebarGroupLabel>{item.groupName}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <For each={item.items}>
+                      {(menuItem) => (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton as={A} href={menuItem.url}>
+                            <menuItem.icon />
+                            <span>{menuItem.title}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )}
+                    </For>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </Show>
           )}
         </For>
       </SidebarContent>
@@ -143,7 +151,9 @@ export function AppSidebar() {
                 />
                 <span class="flex flex-col text-left text-sm">
                   <p>{userContext.currentUser?.name}</p>
-                  <p class="text-xs">Admin</p>
+                  <p class="text-xs">
+                    {userContext.currentUser?.role === 'SUPERADMIN' ? 'Superadmin' : 'Admin'}
+                  </p>
                 </span>
               </div>
               <ChevronsUpDown class="size-4 " />
