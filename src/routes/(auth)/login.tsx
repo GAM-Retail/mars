@@ -49,7 +49,7 @@ export default function Login(props: Readonly<RouteSectionProps>) {
             </Button>
             <Show when={loggingIn.result}>
               <p class="text-sm text-destructive" role="alert">
-                {loggingIn.result!.message}
+                {loggingIn.result?.message}
               </p>
             </Show>
           </form>
