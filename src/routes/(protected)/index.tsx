@@ -1,11 +1,13 @@
 import { logout } from '~/lib';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { RouteDefinition } from '@solidjs/router';
+import { UserRole } from '~/types';
 
 export const route = {
   info: {
     title: 'Home',
     description: 'Home page',
+    role: [UserRole.SUPERADMIN, UserRole.ADMIN],
     breadcrumb: {
       href: '/',
       label: 'Home',
