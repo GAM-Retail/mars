@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import { hashPassword } from '~/lib/hash.server';
 import prisma from '~/lib/db';
-import { Prisma, UserRole } from '~/generated/prisma/client';
+import { Prisma } from '~/generated/prisma/client';
+import { UserRole } from '~/generated/prisma/enums';
 
 const seedUser = async () => {
   const INITIAL_USER_PASSWORD = process.env.INITIAL_USER_PASSWORD;
