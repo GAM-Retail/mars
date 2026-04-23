@@ -9,9 +9,10 @@ import {
 import { ArrowLeft } from 'lucide-solid';
 import RoomForm, { RoomSchema } from '~/routes/(protected)/room/components/RoomForm';
 import { editRoom, getRoomById } from '~/server/controller/room.server';
-import { Show } from 'solid-js';
 import { SubmitHandler } from '@formisch/solid';
 import { toast } from 'solid-sonner';
+import { UserRole } from '~/types';
+import { Show } from 'solid-js';
 
 export const route = {
   info: {
@@ -25,6 +26,7 @@ export const route = {
       label: 'New Room',
       href: '/room/new',
     },
+    role: [UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 export default function EditRoom() {
@@ -34,15 +36,15 @@ export default function EditRoom() {
   const navigate = useNavigate();
   const editRoomAction = useAction(editRoom);
   const onSubmit: SubmitHandler<typeof RoomSchema> = async (data) => {
-    const response = await editRoomAction({ ...data, id: params.id });
-    if (response.status === 'success') {
+    try {
+      const result = await editRoomAction({ ...data, id: params.id });
       toast('Room has been edited', {
-        description: `${response.data.room.name} has been edited successfully.`,
+        description: `${result.room.name} has been edited successfully.`,
       });
-      navigate(`/room/${response.data.room.id}`);
-    } else {
+      navigate(`/room/${result.room.id}`);
+    } catch (error) {
       toast('Failed to edit room', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
@@ -59,10 +61,10 @@ export default function EditRoom() {
         <RoomForm
           onSubmit={onSubmit}
           initialValues={{
-            name: room()?.data?.room?.name,
-            location: room()?.data?.room?.location,
-            capacity: room()?.data?.room?.capacity,
-            description: room()?.data?.room?.description as string,
+            name: room()?.room.name,
+            location: room()?.room.location,
+            capacity: room()?.room.capacity,
+            description: room()?.room.description as string,
           }}
         />
       </div>
