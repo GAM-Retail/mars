@@ -1,4 +1,4 @@
-import { action, CustomResponse, json, query } from '@solidjs/router';
+import { action, json, query } from '@solidjs/router';
 import {
   add,
   deleteById,
@@ -8,159 +8,66 @@ import {
   getRoomsByFacilityId as getRoomsByFacilityIdRepo,
 } from '~/server/repository/facility.server';
 import { validateSession } from '~/server/lib';
-import { Facility } from '~/generated/prisma/client';
-import ActionResponse from '~/server/types/actionResponse';
+import { ForbiddenError, NotFoundError } from '~/lib/error';
 
-export const addFacility = action<
-  Array<{ name: string; description?: string }>,
-  ActionResponse<{ facility: Facility }>
->(async (values) => {
+export const addFacility = action(async (values: { name: string; description?: string }) => {
   'use server';
-  try {
-    if (!values.name) {
-      return {
-        status: 'error',
-        message: 'Name is required',
-      };
-    }
+  if (!values.name) throw new Error('Name is required');
 
-    const userId = await validateSession();
+  const userId = await validateSession();
 
-    const newFacility = await add({ ...values, createdBy: userId });
+  const newFacility = await add({ ...values, createdBy: userId });
 
-    return {
-      status: 'success',
-      data: {
-        facility: newFacility,
-      },
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
+  return { facility: newFacility };
 });
 
-export const editFacility = action<
-  Array<{ id: string; name: string; description?: string }>,
-  ActionResponse<{ facility: Facility }>
->(async (values) => {
-  'use server';
-  try {
-    if (!values.name) {
-      return {
-        status: 'error',
-        message: 'Name is required',
-      };
-    }
+export const editFacility = action(
+  async (values: { id: string; name: string; description?: string }) => {
+    'use server';
+    if (!values.name) throw new Error('Name is required');
 
     const userId = await validateSession();
 
     const currentFacility = await getById(values.id);
-
-    if (!currentFacility) {
-      return {
-        status: 'error',
-        message: 'Facility not found',
-      };
-    }
-
-    if (currentFacility.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
+    if (!currentFacility) throw new NotFoundError('Facility not found');
+    if (currentFacility.createdBy !== userId) throw new ForbiddenError();
 
     const editedFacility = await edit({ ...values });
 
-    return {
-      status: 'success',
-      data: {
-        facility: editedFacility,
-      },
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
-});
+    return { facility: editedFacility };
+  },
+);
 
-export const deleteFacility = action<
-  Array<string>,
-  CustomResponse<{ status: 'success' }> | { status: 'error'; message: string }
->(async (id: string) => {
+export const deleteFacility = action(async (id: string) => {
   'use server';
+  if (!id) throw new Error('Id is required');
 
-  try {
-    if (!id) {
-      return {
-        status: 'error',
-        message: 'Id is required',
-      };
-    }
+  const userId = await validateSession();
 
-    const userId = await validateSession();
+  const currentFacility = await getById(id);
+  if (!currentFacility) throw new NotFoundError('Facility not found');
+  if (currentFacility.createdBy !== userId) throw new ForbiddenError();
 
-    const currentFacility = await getById(id);
+  await deleteById(id);
 
-    if (!currentFacility) {
-      return {
-        status: 'error',
-        message: 'Facility not found',
-      };
-    }
-
-    if (currentFacility.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
-
-    await deleteById(id);
-
-    return json({ status: 'success' }, { revalidate: [] });
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
+  return json({ success: true }, { revalidate: [] });
 });
 
 export const getAllFacility = query(async () => {
   'use server';
   const facilities = await getAll();
-  return {
-    status: 'success',
-    data: {
-      facilities,
-    },
-  };
+  return { facilities };
 }, 'getAllFacility');
 
 export const getFacilityById = query(async (id: string) => {
   'use server';
   const facility = await getById(id);
-  return {
-    status: 'success',
-    data: {
-      facility,
-    },
-  };
+  if (!facility) throw new NotFoundError('Facility does not exist');
+  return { facility };
 }, 'getFacilityById');
 
 export const getRoomsByFacilityId = query(async (id: string) => {
   'use server';
   const roomFacilities = await getRoomsByFacilityIdRepo(id);
-  return {
-    status: 'success',
-    data: {
-      roomFacilities,
-    },
-  };
+  return { roomFacilities };
 }, 'getRoomsByFacilityId');
