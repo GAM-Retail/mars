@@ -52,11 +52,12 @@ export default function FacilityForm(props: Readonly<FacilityFormProps>) {
           <TextField
             name={field.props.name}
             validationState={field?.errors?.length ? 'invalid' : 'valid'}
-            value={field.input}
-            onChange={field.onInput}
           >
             <TextFieldLabel>Description</TextFieldLabel>
-            <TextFieldTextArea />
+            <TextFieldTextArea
+              value={field.input}
+              onInput={(e) => field.onInput(e.currentTarget.value)}
+            />
             <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
           </TextField>
         )}
