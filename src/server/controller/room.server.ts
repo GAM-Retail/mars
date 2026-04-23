@@ -9,18 +9,14 @@ import {
   removeFacilityFromRoom,
   removePersonInCharge,
 } from '~/server/repository/room.server';
-import { action, CustomResponse, json, query } from '@solidjs/router';
+import { action, json, query } from '@solidjs/router';
 import { getAllFacility } from '~/server/controller/facility.server';
 import { validateSession } from '~/server/lib';
-import ActionResponse from '~/server/types/actionResponse';
-import { Room } from '~/generated/prisma/client';
+import { ForbiddenError, NotFoundError } from '~/lib/error';
 
-export const addRoom = action<
-  Array<{ name: string; location: string; capacity: number; description?: string }>,
-  ActionResponse<{ room: Room }>
->(async (values) => {
-  'use server';
-  try {
+export const addRoom = action(
+  async (values: { name: string; location: string; capacity: number; description?: string }) => {
+    'use server';
     const userId = await validateSession();
 
     const newRoom = await add({
@@ -28,289 +24,116 @@ export const addRoom = action<
       createdBy: userId,
     });
 
-    return {
-      status: 'success',
-      data: {
-        room: newRoom,
-      },
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
-});
+    return { room: newRoom };
+  },
+);
 
 export const getAllRooms = query(async () => {
   'use server';
-
   const rooms = await getAll();
-  return {
-    status: 'success',
-    data: {
-      rooms,
-    },
-  };
+  return { rooms };
 }, 'getAllRooms');
 
 export const getRoomById = query(async (id: string) => {
   'use server';
   if (!id) throw new Error('Id is required');
   const room = await getById(id);
-  return {
-    status: 'success',
-    data: {
-      room,
-    },
-  };
+  if (!room) throw new NotFoundError('Room does not exist');
+  return { room };
 }, 'getRoomById');
 
-export const deleteRoom = action<
-  Array<string>,
-  CustomResponse<{ status: 'success' }> | { status: 'error'; message: string }
->(async (id: string) => {
+export const deleteRoom = action(async (id: string) => {
   'use server';
-  try {
-    if (!id) {
-      return {
-        status: 'error',
-        message: 'Id is required',
-      };
-    }
-    const userId = await validateSession();
+  if (!id) throw new Error('Id is required');
+  const userId = await validateSession();
 
-    const currentRoom = await getById(id);
+  const currentRoom = await getById(id);
+  if (!currentRoom) throw new NotFoundError('Room does not exist');
+  if (currentRoom.createdBy !== userId) throw new ForbiddenError();
 
-    if (!currentRoom) {
-      return {
-        status: 'error',
-        message: 'Room does not exist',
-      };
-    }
+  await deleteById(id);
 
-    if (currentRoom.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
-
-    await deleteById(id);
-
-    return json({ status: 'success' }, { revalidate: [] });
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
+  return json({ success: true }, { revalidate: [] });
 });
 
-export const editRoom = action<
-  Array<{
+export const editRoom = action(
+  async (values: {
     id: string;
     name: string;
     location: string;
     capacity: number;
     description?: string;
-  }>,
-  ActionResponse<{ room: Room }>
->(async (values) => {
-  'use server';
-  try {
-    if (!values.name) {
-      return {
-        status: 'error',
-        message: 'Id is required',
-      };
-    }
+  }) => {
+    'use server';
+    if (!values.name) throw new Error('Name is required');
 
     const userId = await validateSession();
 
     const currentRoom = await getById(values.id);
-
-    if (!currentRoom) {
-      return {
-        status: 'error',
-        message: 'Room does not exist',
-      };
-    }
-
-    if (currentRoom.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
+    if (!currentRoom) throw new NotFoundError('Room does not exist');
+    if (currentRoom.createdBy !== userId) throw new ForbiddenError();
 
     const editedRoom = await edit(values);
 
-    return {
-      status: 'success',
-      data: {
-        room: editedRoom,
-      },
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
-});
+    return { room: editedRoom };
+  },
+);
 
 export const getAllFacilitiesForRoom = query(async () => {
   'use server';
-  const result = await getAllFacility();
-  return {
-    status: 'success',
-    data: {
-      facilities: result.data.facilities,
-    },
-  };
+  return getAllFacility();
 }, 'getAllFacilitiesForRoom');
 
-export const addFacilityToRoomAction = action<
-  Array<string>,
-  { status: 'success' } | { status: 'error'; message: string }
->(async (roomId: string, facilityId: string) => {
+export const addFacilityToRoomAction = action(async (roomId: string, facilityId: string) => {
   'use server';
-  try {
-    const userId = await validateSession();
+  const userId = await validateSession();
 
-    const room = await getById(roomId);
-    if (!room) {
-      return {
-        status: 'error',
-        message: 'Room does not exist',
-      };
-    }
+  const room = await getById(roomId);
+  if (!room) throw new NotFoundError('Room does not exist');
+  if (room.createdBy !== userId) throw new ForbiddenError();
 
-    if (room.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
+  await addFacilityToRoom(roomId, facilityId);
 
-    await addFacilityToRoom(roomId, facilityId);
-
-    return {
-      status: 'success',
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
+  return { success: true };
 });
 
-export const removeFacilityFromRoomAction = action<
-  Array<string>,
-  { status: 'success' } | { status: 'error'; message: string }
->(async (roomId: string, facilityId: string) => {
+export const removeFacilityFromRoomAction = action(async (roomId: string, facilityId: string) => {
   'use server';
-  try {
-    const userId = await validateSession();
+  const userId = await validateSession();
 
-    const room = await getById(roomId);
-    if (!room) {
-      return {
-        status: 'error',
-        message: 'Room does not exist',
-      };
-    }
+  const room = await getById(roomId);
+  if (!room) throw new NotFoundError('Room does not exist');
+  if (room.createdBy !== userId) throw new ForbiddenError();
 
-    if (room.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
+  await removeFacilityFromRoom(roomId, facilityId);
 
-    await removeFacilityFromRoom(roomId, facilityId);
-
-    return {
-      status: 'success',
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
+  return { success: true };
 });
 
-export const addPersonInChargeAction = action<
-  Array<string>,
-  { status: 'success' } | { status: 'error'; message: string }
->(async (roomId: string, personInChargeId: string) => {
+export const addPersonInChargeAction = action(async (roomId: string, personInChargeId: string) => {
   'use server';
-  try {
-    const userId = await validateSession();
+  const userId = await validateSession();
 
-    const room = await getById(roomId);
-    if (!room) {
-      return {
-        status: 'error',
-        message: 'Room does not exist',
-      };
-    }
+  const room = await getById(roomId);
+  if (!room) throw new NotFoundError('Room does not exist');
+  if (room.createdBy !== userId) throw new ForbiddenError();
 
-    if (room.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
+  await addPersonInCharge(roomId, personInChargeId);
 
-    await addPersonInCharge(roomId, personInChargeId);
-
-    return {
-      status: 'success',
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
+  return { success: true };
 });
 
-export const removePersonInChargeAction = action<
-  Array<string>,
-  { status: 'success' } | { status: 'error'; message: string }
->(async (roomId: string, personInChargeId: string) => {
-  'use server';
-  try {
+export const removePersonInChargeAction = action(
+  async (roomId: string, personInChargeId: string) => {
+    'use server';
     const userId = await validateSession();
 
     const room = await getById(roomId);
-    if (!room) {
-      return {
-        status: 'error',
-        message: 'Room does not exist',
-      };
-    }
-
-    if (room.createdBy !== userId) {
-      return {
-        status: 'error',
-        message: 'Unauthorized',
-      };
-    }
+    if (!room) throw new NotFoundError('Room does not exist');
+    if (room.createdBy !== userId) throw new ForbiddenError();
 
     await removePersonInCharge(roomId, personInChargeId);
 
-    return {
-      status: 'success',
-    };
-  } catch (error: unknown) {
-    return {
-      status: 'error',
-      message: (error as Error).message,
-    };
-  }
-});
+    return { success: true };
+  },
+);
