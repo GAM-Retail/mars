@@ -7,6 +7,7 @@ import {
   validatePassword,
   validateNikOrEmail,
 } from './auth.server';
+import { CurrentUser } from '~/types';
 
 export const getUser = query(async () => {
   'use server';
@@ -16,7 +17,13 @@ export const getUser = query(async () => {
     if (userId === undefined) throw new Error('User not found');
     const user = await db.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error('User not found');
-    return { id: user.id, email: user.email, nik: user.nik, name: user.name };
+    return {
+      id: user.id,
+      email: user.email,
+      nik: user.nik,
+      name: user.name,
+      role: user.role,
+    } as CurrentUser;
   } catch {
     await logoutSession();
     return null;
