@@ -6,7 +6,7 @@ import {
   useLocation,
   useNavigate,
 } from '@solidjs/router';
-import { getUser } from '~/lib';
+import { getUser } from '~/server/controller/session.server';
 import CurrentUserProvider from '~/components/CurrentUserProvider';
 import { createEffect, createMemo, For, Show, Suspense, ErrorBoundary } from 'solid-js';
 import { SidebarProvider, SidebarRail, SidebarTrigger } from '~/components/ui/sidebar';
