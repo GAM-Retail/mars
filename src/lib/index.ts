@@ -37,7 +37,7 @@ export const loginAction = action(async (formData: FormData) => {
   const password = String(formData.get('password'));
   const error = validNikOrEmail?.message || validatePassword(password);
   if (error) return new Error(error);
-  if (!validNikOrEmail.type) return new Error('Invalid login');
+  if (!validNikOrEmail.type) return new Error('NIK or Email is invalid');
 
   try {
     const user = await login(nikOrEmail, password, validNikOrEmail.type);
