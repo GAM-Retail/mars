@@ -1,6 +1,6 @@
 import { useSession } from '@solidjs/start/http';
-import db from './db';
-import { verifyPassword } from '~/lib/hash.server';
+import db from '~/lib/db';
+import { verifyPassword } from '~/server/lib/hash.server';
 
 export function validateNikOrEmail(value: unknown): {
   valid: boolean;
