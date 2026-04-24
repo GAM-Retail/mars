@@ -1,4 +1,4 @@
-import { logout } from '~/lib';
+import { logout } from '~/server/controller/session.server';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { RouteDefinition } from '@solidjs/router';
 import { UserRole } from '~/types';
