@@ -23,6 +23,7 @@ export function TableRowActions<TData>(props: Readonly<TableRowActionsProps<TDat
         as={Button<'button'>}
         variant="ghost"
         class="flex size-8 p-0 data-[state=open]:bg-muted"
+        aria-label="Open menu"
       >
         <Ellipsis />
         <span class="sr-only">Open menu</span>
@@ -33,7 +34,7 @@ export function TableRowActions<TData>(props: Readonly<TableRowActionsProps<TDat
           class="w-full hover:bg-transparent! hover:text-foreground! justify-start"
           size="sm"
           variant="ghost"
-          onClick={() => navigate(props.row.getValue(props?.paramName ?? 'id'))}
+          onSelect={() => navigate(props.row.getValue(props?.paramName ?? 'id'))}
         >
           Detail
         </DropdownMenuItem>
