@@ -1,6 +1,6 @@
 import { useSubmission, type RouteSectionProps } from '@solidjs/router';
 import { Show } from 'solid-js';
-import { loginAction } from '~/lib';
+import { loginAction } from '~/server/controller/session.server';
 import { Button } from '~/components/ui/button';
 import { TextField, TextFieldInput, TextFieldLabel } from '~/components/ui/text-field';
 import { ModeToggle } from '~/components/ModeToggle';
