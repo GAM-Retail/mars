@@ -1,4 +1,4 @@
-import { getSession } from '~/lib/auth.server';
+import { getSession } from '~/server/lib/auth.server';
 import db from '~/lib/db';
 import { UserRole } from '~/types';
 import { ForbiddenError } from '~/lib/error';
