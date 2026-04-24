@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js';
-import { A, useAction } from '@solidjs/router';
+import { A, useAction, useNavigate } from '@solidjs/router';
 
 import {
   Sidebar,
@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { logout } from '~/lib';
+import { logout } from '~/server/controller/session.server';
 import { ModeToggle } from '~/components/ModeToggle';
 
 type SidebarItem = {
@@ -99,6 +99,7 @@ const items: SidebarItem[] = [
 export function AppSidebar() {
   const userContext = useCurrentUser();
   const logOut = useAction(logout);
+  const navigate = useNavigate();
   return (
     <Sidebar>
       <SidebarHeader>
@@ -141,7 +142,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <DropdownMenu placement="right">
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger aria-label="User menu">
             <div class="flex justify-between items-center bg-accent p-2 rounded-lg cursor-pointer">
               <div class="flex items-center gap-2">
                 <img
@@ -162,7 +163,7 @@ export function AppSidebar() {
           <DropdownMenuContent>
             <DropdownMenuLabel>{userContext.currentUser?.name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem as={A} href="#">
+            <DropdownMenuItem as={A} href="/profile" onSelect={() => navigate('/profile')}>
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem as="button" class="w-full" onSelect={logOut}>
