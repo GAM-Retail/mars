@@ -4,17 +4,12 @@ import { TableColumnHeader } from '~/components/ui/table-column-header';
 import { TableRowActions } from '~/components/ui/table-row-actions';
 import { createAsync, RouteDefinition } from '@solidjs/router';
 import { getAllFacility } from '~/server/controller/facility.server';
+import type { FacilityModel } from '~/generated/prisma/models';
+import { UserRole } from '~/types';
+import { Suspense } from 'solid-js';
+import Loading from '~/components/Loading';
 
-type Facility = {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
-};
-
-const columns: ColumnDef<Facility>[] = [
+const columns: ColumnDef<FacilityModel>[] = [
   {
     accessorKey: 'id',
     header: 'Id',
@@ -53,19 +48,22 @@ export const route = {
       label: 'New Facility',
       href: '/facility/new',
     },
+    role: [UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 export default function Facility() {
   const facilities = createAsync(() => getAllFacility());
   return (
-    <div class="px-4 py-2 bg-secondary">
-      <h2 class="text-2xl font-semibold">List Facility</h2>
-      <DataTable
-        showSearchBar
-        searchBy="name"
-        columns={columns}
-        data={facilities()?.data?.facilities ?? []}
-      />
-    </div>
+    <Suspense fallback={<Loading />}>
+      <div class="px-4 py-2 bg-secondary">
+        <h2 class="text-2xl font-semibold">List Facility</h2>
+        <DataTable
+          showSearchBar
+          searchBy="name"
+          columns={columns}
+          data={facilities()?.facilities ?? []}
+        />
+      </div>
+    </Suspense>
   );
 }

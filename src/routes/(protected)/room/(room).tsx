@@ -4,7 +4,10 @@ import { TableColumnHeader } from '~/components/ui/table-column-header';
 import { TableRowActions } from '~/components/ui/table-row-actions';
 import { createAsync, RouteDefinition } from '@solidjs/router';
 import { Room as RoomType } from '~/generated/prisma/client';
+import { UserRole } from '~/types';
 import { getAllRooms } from '~/server/controller/room.server';
+import { Suspense } from 'solid-js';
+import Loading from '~/components/Loading';
 
 const columns: ColumnDef<RoomType>[] = [
   {
@@ -49,6 +52,7 @@ export const route = {
       href: '/room',
       label: 'Room',
     },
+    role: [UserRole.SUPERADMIN],
     newButtonState: {
       label: 'New Room',
       href: '/room/new',
@@ -58,14 +62,11 @@ export const route = {
 export default function Room() {
   const rooms = createAsync(() => getAllRooms());
   return (
-    <div class="px-4 py-2 bg-secondary">
-      <h2 class="text-2xl font-semibold">List Rooms</h2>
-      <DataTable
-        showSearchBar
-        searchBy="name"
-        columns={columns}
-        data={rooms()?.data?.rooms ?? []}
-      />
-    </div>
+    <Suspense fallback={<Loading />}>
+      <div class="px-4 py-2 bg-secondary">
+        <h2 class="text-2xl font-semibold">List Rooms</h2>
+        <DataTable showSearchBar searchBy="name" columns={columns} data={rooms()?.rooms ?? []} />
+      </div>
+    </Suspense>
   );
 }

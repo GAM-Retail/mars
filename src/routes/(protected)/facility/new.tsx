@@ -3,9 +3,10 @@ import FacilityForm, {
   FacilitySchema,
 } from '~/routes/(protected)/facility/components/FacilityForm';
 import { ArrowLeft } from 'lucide-solid';
-import { addFacility } from '~/server/controller/facility.server';
 import { SubmitHandler } from '@formisch/solid';
 import { toast } from 'solid-sonner';
+import { addFacility } from '~/server/controller/facility.server';
+import { UserRole } from '~/types';
 export const route = {
   info: {
     title: 'New Facility',
@@ -18,6 +19,7 @@ export const route = {
       label: 'New Facility',
       href: '/facility/new',
     },
+    role: [UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 
@@ -25,19 +27,19 @@ export default function NewFacility() {
   const navigate = useNavigate();
   const addFacilityAction = useAction(addFacility);
   const onSubmit: SubmitHandler<typeof FacilitySchema> = async (data) => {
-    const response = await addFacilityAction(data);
-    if (response.status === 'success') {
+    try {
+      const result = await addFacilityAction(data);
       toast('Facility has been created', {
-        description: `${response.data.facility.name} has been created successfully.`,
+        description: `${result.facility.name} has been created successfully.`,
         action: {
           label: 'Detail',
-          onClick: () => navigate(`/facility/${response.data.facility.id}`),
+          onClick: () => navigate(`/facility/${result.facility.id}`),
         },
       });
       navigate('/facility');
-    } else {
+    } catch (error) {
       toast('Failed to create facility', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };

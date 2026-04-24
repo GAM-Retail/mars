@@ -1,19 +1,195 @@
-import { query } from '@solidjs/router';
-import { getSession } from '~/lib/auth.server';
-import { getAllUsers as getAllUsersRepository } from '~/server/repository/user.server';
+import { action, json, query } from '@solidjs/router';
+import db from '~/lib/db';
+import {
+  createUser,
+  deleteUser,
+  getAllUsers as getAllUsersRepository,
+  getUserById,
+  updateUser,
+} from '~/server/repository/user.server';
+import { validateSession, validateSessionWithRole } from '~/server/lib';
+import { UserRole } from '~/generated/prisma/enums';
+import { NotFoundError, ForbiddenError } from '~/lib/error';
 
 export const getAllUsers = query(async () => {
   'use server';
+  await validateSessionWithRole('SUPERADMIN');
 
-  const session = await getSession();
-  const userId = session.data.userId;
-
-  if (!userId) throw new Error('Unauthorized');
-
-  const users = await getAllUsersRepository();
-
-  return {
-    status: 'success',
-    data: users,
-  };
+  return await getAllUsersRepository();
 }, 'getAllUsers');
+
+export const getUserByIdController = query(async (id: string) => {
+  'use server';
+  await validateSessionWithRole('SUPERADMIN');
+
+  if (!id) {
+    throw new Error('Id is required');
+  }
+
+  const user = await getUserById(id);
+
+  if (!user) {
+    throw new NotFoundError('User does not exist');
+  }
+
+  return { user };
+}, 'getUserById');
+
+export const createUserAction = action(
+  async (values: {
+    nik: string;
+    email: string;
+    name: string;
+    password: string;
+    role: UserRole;
+  }) => {
+    'use server';
+    await validateSessionWithRole('SUPERADMIN');
+
+    const existingNik = await db.user.findUnique({ where: { nik: values.nik } });
+    if (existingNik) {
+      throw new Error('NIK already exists');
+    }
+
+    const existingEmail = await db.user.findUnique({ where: { email: values.email } });
+    if (existingEmail) {
+      throw new Error('Email already exists');
+    }
+
+    const newUser = await createUser(values);
+
+    return { user: newUser };
+  },
+);
+
+export const updateUserAction = action(
+  async (values: {
+    id: string;
+    nik: string;
+    email: string;
+    name: string;
+    role: UserRole;
+    password?: string;
+  }) => {
+    'use server';
+    await validateSessionWithRole('SUPERADMIN');
+
+    const existingUser = await getUserById(values.id);
+    if (!existingUser) {
+      throw new NotFoundError('User does not exist');
+    }
+
+    const existingNik = await db.user.findUnique({
+      where: { nik: values.nik, NOT: { id: values.id } },
+    });
+    if (existingNik) {
+      throw new Error('NIK already exists');
+    }
+
+    const existingEmail = await db.user.findUnique({
+      where: { email: values.email, NOT: { id: values.id } },
+    });
+    if (existingEmail) {
+      throw new Error('Email already exists');
+    }
+
+    const updatedUser = await updateUser({
+      id: values.id,
+      nik: values.nik,
+      email: values.email,
+      name: values.name,
+      role: values.role,
+      password: values.password,
+    });
+
+    return { user: updatedUser };
+  },
+);
+
+export const deleteUserAction = action(async (id: string) => {
+  'use server';
+  await validateSessionWithRole('SUPERADMIN');
+
+  const existingUser = await getUserById(id);
+  if (!existingUser) {
+    throw new NotFoundError('User does not exist');
+  }
+
+  await deleteUser(id);
+
+  return json({ success: true }, { revalidate: [] });
+});
+
+export const updateProfileAction = action(
+  async (values: { id: string; nik: string; email: string; name: string; password?: string }) => {
+    'use server';
+    const userId = await validateSession();
+
+    const existingUser = await getUserById(values.id);
+    if (!existingUser) {
+      throw new NotFoundError('User does not exist');
+    }
+
+    if (values.id !== userId) {
+      throw new ForbiddenError('You can only update your own profile');
+    }
+
+    const existingNik = await db.user.findUnique({
+      where: { nik: values.nik, NOT: { id: values.id } },
+    });
+    if (existingNik) {
+      throw new Error('NIK already exists');
+    }
+
+    const existingEmail = await db.user.findUnique({
+      where: { email: values.email, NOT: { id: values.id } },
+    });
+    if (existingEmail) {
+      throw new Error('Email already exists');
+    }
+
+    const updatedUser = await updateUser({
+      id: values.id,
+      nik: values.nik,
+      email: values.email,
+      name: values.name,
+      role: existingUser.role as UserRole,
+      password: values.password,
+    });
+
+    return { user: updatedUser };
+  },
+);
+
+export const changePasswordAction = action(
+  async (values: { id: string; currentPassword: string; newPassword: string }) => {
+    'use server';
+    const userId = await validateSession();
+
+    if (values.id !== userId) {
+      throw new ForbiddenError('You can only change your own password');
+    }
+
+    const user = await getUserById(values.id, { includeSensitive: true });
+    if (!user) {
+      throw new NotFoundError('User does not exist');
+    }
+
+    const { verifyPassword } = await import('~/server/lib/hash.server');
+    const isValid = await verifyPassword(values.currentPassword, user.password);
+    if (!isValid) {
+      throw new Error('Current password is incorrect');
+    }
+
+    await updateUser({
+      id: values.id,
+      nik: user.nik,
+      email: user.email,
+      name: user.name,
+      role: user.role as UserRole,
+      password: values.newPassword,
+    });
+
+    return { success: true };
+  },
+);

@@ -29,24 +29,24 @@ export default function RoomDetailFacilities(props: Readonly<Props>) {
       name: rf.facility.name,
     }));
 
-  const handleAdd = async (facilityId: string) => {
-    const response = await addFacilityAction(props.roomId, facilityId);
-    if (response.status === 'success') {
+const handleAdd = async (facilityId: string) => {
+    try {
+      await addFacilityAction(props.roomId, facilityId);
       toast('Facility added');
-    } else {
+    } catch (error) {
       toast('Failed to add facility', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
 
   const handleRemove = async (facilityId: string) => {
-    const response = await removeFacilityAction(props.roomId, facilityId);
-    if (response.status === 'success') {
+    try {
+      await removeFacilityAction(props.roomId, facilityId);
       toast('Facility removed');
-    } else {
+    } catch (error) {
       toast('Failed to remove facility', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };

@@ -1,5 +1,5 @@
-import { For } from 'solid-js';
-import { A, useAction } from '@solidjs/router';
+import { For, Show } from 'solid-js';
+import { A, useAction, useNavigate } from '@solidjs/router';
 
 import {
   Sidebar,
@@ -21,7 +21,7 @@ import {
   LayoutDashboard,
   LucideIcon,
   Presentation,
-  UserKey,
+  User,
 } from 'lucide-solid';
 import { UserRole } from '~/types';
 import {
@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { logout } from '~/lib';
+import { logout } from '~/server/controller/session.server';
 import { ModeToggle } from '~/components/ModeToggle';
 
 type SidebarItem = {
@@ -65,16 +65,22 @@ const items: SidebarItem[] = [
         icon: Presentation,
       },
     ],
-    role: ['superadmin'],
+    role: ['ADMIN'],
+  },
+  {
+    groupName: 'Management',
+    items: [
+      {
+        title: 'User Management',
+        url: '/user',
+        icon: User,
+      },
+    ],
+    role: ['SUPERADMIN'],
   },
   {
     groupName: 'Settings',
     items: [
-      {
-        title: 'User Login',
-        url: '#',
-        icon: UserKey,
-      },
       {
         title: 'Facility',
         url: '/facility',
@@ -86,13 +92,14 @@ const items: SidebarItem[] = [
         icon: BookKey,
       },
     ],
-    role: ['superadmin', 'admin'],
+    role: ['SUPERADMIN'],
   },
 ];
 
 export function AppSidebar() {
   const userContext = useCurrentUser();
   const logOut = useAction(logout);
+  const navigate = useNavigate();
   return (
     <Sidebar>
       <SidebarHeader>
@@ -111,29 +118,31 @@ export function AppSidebar() {
       <SidebarContent>
         <For each={items}>
           {(item) => (
-            <SidebarGroup>
-              <SidebarGroupLabel>{item.groupName}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <For each={item.items}>
-                    {(item) => (
-                      <SidebarMenuItem>
-                        <SidebarMenuButton as={A} href={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    )}
-                  </For>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            <Show when={item.role.includes(userContext.currentUser?.role as UserRole)}>
+              <SidebarGroup>
+                <SidebarGroupLabel>{item.groupName}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <For each={item.items}>
+                      {(menuItem) => (
+                        <SidebarMenuItem>
+                          <SidebarMenuButton as={A} href={menuItem.url}>
+                            <menuItem.icon />
+                            <span>{menuItem.title}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      )}
+                    </For>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </Show>
           )}
         </For>
       </SidebarContent>
       <SidebarFooter>
         <DropdownMenu placement="right">
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger aria-label="User menu">
             <div class="flex justify-between items-center bg-accent p-2 rounded-lg cursor-pointer">
               <div class="flex items-center gap-2">
                 <img
@@ -143,7 +152,9 @@ export function AppSidebar() {
                 />
                 <span class="flex flex-col text-left text-sm">
                   <p>{userContext.currentUser?.name}</p>
-                  <p class="text-xs">Admin</p>
+                  <p class="text-xs">
+                    {userContext.currentUser?.role === 'SUPERADMIN' ? 'Superadmin' : 'Admin'}
+                  </p>
                 </span>
               </div>
               <ChevronsUpDown class="size-4 " />
@@ -152,7 +163,7 @@ export function AppSidebar() {
           <DropdownMenuContent>
             <DropdownMenuLabel>{userContext.currentUser?.name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem as={A} href="#">
+            <DropdownMenuItem as={A} href="/profile" onSelect={() => navigate('/profile')}>
               Profile
             </DropdownMenuItem>
             <DropdownMenuItem as="button" class="w-full" onSelect={logOut}>

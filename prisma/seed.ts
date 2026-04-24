@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { hashPassword } from '~/lib/hash.server';
+import { hashPassword } from '~/server/lib/hash.server';
 import prisma from '~/lib/db';
 import { Prisma } from '~/generated/prisma/client';
+import { UserRole } from '~/generated/prisma/enums';
 
 const seedUser = async () => {
   const INITIAL_USER_PASSWORD = process.env.INITIAL_USER_PASSWORD;
@@ -14,6 +15,7 @@ const seedUser = async () => {
     email: 'alfi.dim@gramedia.com',
     nik: '123456',
     password: hashedPassword,
+    role: UserRole.SUPERADMIN,
   };
 
   console.log('Seeding user: ', userData.email);

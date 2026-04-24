@@ -1,6 +1,6 @@
 import { useSession } from '@solidjs/start/http';
-import db from './db';
-import { verifyPassword } from '~/lib/hash.server';
+import db from '~/lib/db';
+import { verifyPassword } from '~/server/lib/hash.server';
 
 export function validateNikOrEmail(value: unknown): {
   valid: boolean;
@@ -43,7 +43,7 @@ export async function login(nikOrEmail: string, password: string, type: 'nik' | 
   });
   if (!user) throw new Error('User not found');
   const isValid = await verifyPassword(password, user.password);
-  if (!isValid) throw new Error('Invalid login');
+  if (!isValid) throw new Error('Incorrect password, please try again');
   return user;
 }
 

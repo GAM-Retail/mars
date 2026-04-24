@@ -1,0 +1,87 @@
+import {
+  A,
+  createAsync,
+  RouteDefinition,
+  useAction,
+  useNavigate,
+  useParams,
+} from '@solidjs/router';
+import { ArrowLeft } from 'lucide-solid';
+import { toast } from 'solid-sonner';
+import { getUserByIdController, updateUserAction } from '~/server/controller/user.server';
+import UserForm, { UserSchema } from '~/routes/(protected)/user/components/UserForm';
+import { UserRole } from '~/types';
+import * as v from 'valibot';
+import { Show } from 'solid-js';
+
+export const route = {
+  info: {
+    title: 'Edit User',
+    description: 'Edit User',
+    breadcrumb: {
+      href: '/user/edit',
+      label: 'Edit User',
+    },
+    newButtonState: {
+      label: 'New User',
+      href: '/user/new',
+    },
+    role: [UserRole.SUPERADMIN],
+  },
+} satisfies RouteDefinition;
+
+export default function EditUser() {
+  const params = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const userResource = createAsync(() => getUserByIdController(params.id));
+  const updateUser = useAction(updateUserAction);
+
+  const onSubmit = async (data: v.InferInput<typeof UserSchema>) => {
+    try {
+      const result = await updateUser({
+        id: params.id,
+        nik: data.nik,
+        email: data.email,
+        name: data.name,
+        role: data.role as UserRole,
+        password: (data.password as string) || undefined,
+      });
+      toast('User has been updated', {
+        description: `${result.user.name} has been updated successfully.`,
+        action: {
+          label: 'Detail',
+          onClick: () => navigate(`/user/${result.user.id}`),
+        },
+      });
+      navigate(`/user/${params.id}`);
+    } catch (error) {
+      toast('Failed to update user', {
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
+
+  return (
+    <Show when={userResource()}>
+      <div class="max-w-md sm:max-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
+        <span>
+          <A href={`/user/${params.id}`} class="flex items-center gap-2 mb-4 w-fit">
+            <ArrowLeft class=" h-4 w-4" />
+            Back
+          </A>
+          <h2 class="text-xl font-semibold">Edit user</h2>
+        </span>
+        <UserForm
+          onSubmit={onSubmit}
+          showPassword={false}
+          initialValues={{
+            nik: userResource()?.user.nik,
+            name: userResource()?.user.name,
+            email: userResource()?.user.email,
+            role: userResource()?.user.role,
+          }}
+        />
+      </div>
+    </Show>
+  );
+}

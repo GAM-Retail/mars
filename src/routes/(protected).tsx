@@ -6,9 +6,9 @@ import {
   useLocation,
   useNavigate,
 } from '@solidjs/router';
-import { getUser } from '~/lib';
+import { getUser } from '~/server/controller/session.server';
 import CurrentUserProvider from '~/components/CurrentUserProvider';
-import { createEffect, createMemo, For, Show } from 'solid-js';
+import { createEffect, createMemo, For, Show, Suspense, ErrorBoundary } from 'solid-js';
 import { SidebarProvider, SidebarRail, SidebarTrigger } from '~/components/ui/sidebar';
 import { AppSidebar } from '~/components/AppSidebar';
 import { Meta, Title } from '@solidjs/meta';
@@ -22,6 +22,9 @@ import {
 } from '~/components/ui/breadcrumb';
 import { Button } from '~/components/ui/button';
 import { Toaster } from '~/components/ui/sonner';
+import Forbidden from '~/components/Forbidden';
+import NotFound from '~/components/NotFound';
+import Loading from '~/components/Loading';
 
 export default function Protected(props: Readonly<RouteSectionProps>) {
   const user = createAsync(() => getUser(), { deferStream: true });
@@ -38,6 +41,7 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
   const description = createMemo(
     () => matches().at(matches()?.length - 1)?.route?.info?.description,
   );
+  const currentPageRole = createMemo(() => matches().at(matches()?.length - 1)?.route?.info?.role);
   const newButtonState = createMemo(
     () => matches().at(matches()?.length - 1)?.route?.info?.newButtonState,
   );
@@ -107,13 +111,38 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
                       </BreadcrumbList>
                     </Breadcrumb>
                   </div>
-                  <Show when={newButtonState()} fallback={<></>}>
+                  <Show
+                    when={newButtonState() && currentPageRole().includes(user()?.role)}
+                    fallback={<></>}
+                  >
                     <Button size="sm" as={A} href={newButtonState().href}>
                       {newButtonState().label}
                     </Button>
                   </Show>
                 </div>
-                {props.children}
+                <ErrorBoundary
+                  fallback={(err) => {
+                    if (err instanceof Error && err.name === 'ForbiddenError') {
+                      return <Forbidden />;
+                    }
+                    if (err instanceof Error && err.name === 'NotFoundError') {
+                      const currentPageBreadcrumb = breadcrumbs()?.[0];
+                      return (
+                        <NotFound
+                          label={currentPageBreadcrumb.label}
+                          href={currentPageBreadcrumb.href}
+                        />
+                      );
+                    }
+                    throw err;
+                  }}
+                >
+                  <Suspense fallback={<Loading />}>
+                    <Show when={currentPageRole().includes(user()?.role)} fallback={<Forbidden />}>
+                      {props.children}
+                    </Show>
+                  </Suspense>
+                </ErrorBoundary>
               </div>
             </SidebarProvider>
           </CurrentUserProvider>

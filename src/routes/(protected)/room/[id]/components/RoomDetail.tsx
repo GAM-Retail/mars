@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import { CalendarPlus, CircleUser, Cog } from 'lucide-solid';
 import {
   DropdownMenu,
@@ -40,16 +40,15 @@ export default function RoomDetail(props: Readonly<Props>) {
   const [open, setOpen] = createSignal(false);
 
   const onDelete = async () => {
-    const response = await deleteRoomAction(props.room.id);
-
-    if (response.status === 'success') {
+    try {
+      await deleteRoomAction(props.room.id);
       toast('Room has been deleted', {
         description: `Room ${props.room.name} has been deleted successfully.`,
       });
       navigate('/room');
-    } else {
+    } catch (error) {
       toast('Failed to delete room', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
@@ -63,11 +62,15 @@ export default function RoomDetail(props: Readonly<Props>) {
         </div>
         <div class="flex flex-col items-end justify-between">
           <DropdownMenu placement="right">
-            <DropdownMenuTrigger class="flex item-start">
+            <DropdownMenuTrigger class="flex item-start" aria-label="Options">
               <Cog class="h-6 w-6" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem as={A} href={`/room/${props.room.id}/edit`}>
+              <DropdownMenuItem
+                as={A}
+                href={`/room/${props.room.id}/edit`}
+                onSelect={() => navigate(`/room/${props.room.id}/edit`)}
+              >
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -84,7 +87,9 @@ export default function RoomDetail(props: Readonly<Props>) {
           <div class="flex flex-wrap gap-6 text-sm text-muted-foreground">
             <div class="flex items-center gap-2">
               <CircleUser class="h-4 w-4" />
-              <span>{props.room.createdByUser.name}</span>
+              <Show when={props?.room?.createdByUser?.name} fallback={<p>System</p>}>
+                {(name) => <p>{name()}</p>}
+              </Show>
             </div>
             <div class="flex items-center gap-2">
               <CalendarPlus class="h-4 w-4" />
@@ -100,7 +105,7 @@ export default function RoomDetail(props: Readonly<Props>) {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="space-y-4">
           <div>
             <p class="text-xs text-muted-foreground mb-1">Description</p>

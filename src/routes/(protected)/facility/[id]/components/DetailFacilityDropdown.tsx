@@ -1,4 +1,4 @@
-import { FacilityGetPayload } from '~/generated/prisma/models/Facility';
+import type { FacilityModel } from '~/generated/prisma/models';
 import { createSignal } from 'solid-js';
 import { A, useAction, useNavigate } from '@solidjs/router';
 import { deleteFacility } from '~/server/controller/facility.server';
@@ -18,35 +18,33 @@ import {
   AlertDialogTitle,
 } from '~/components/ui/alert-dialog';
 
-type FacilityWithUser = FacilityGetPayload<{
-  include: { createdByUser: true };
-}>;
+type FacilityWithUser = FacilityModel;
 export default function DetailFacilityDropdown(props: Readonly<{ facility: FacilityWithUser }>) {
   const [open, setOpen] = createSignal(false);
   const deleteFacilityAction = useAction(deleteFacility);
 
   const navigate = useNavigate();
-  const onDelete = async () => {
-    const response = await deleteFacilityAction(props.facility.id);
-    if (response.status === 'success') {
+const onDelete = async () => {
+    try {
+      await deleteFacilityAction(props.facility.id);
       toast('Facility has been deleted', {
         description: `Facility ${props.facility.name} has been deleted successfully.`,
       });
       navigate('/facility');
-    } else {
+    } catch (error) {
       toast('Failed to delete facility', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
   return (
     <>
       <DropdownMenu placement="right">
-        <DropdownMenuTrigger class="flex item-start">
+        <DropdownMenuTrigger class="flex item-start" aria-label="Options">
           <Cog class="h-6 w-6" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem as={A} href={`/facility/${props.facility.id}/edit`}>
+          <DropdownMenuItem as={A} href={`/facility/${props.facility.id}/edit`} onSelect={() => navigate(`/facility/${props.facility.id}/edit`)}>
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem

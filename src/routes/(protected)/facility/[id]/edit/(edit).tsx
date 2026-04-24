@@ -11,9 +11,10 @@ import FacilityForm, {
   FacilitySchema,
 } from '~/routes/(protected)/facility/components/FacilityForm';
 import { editFacility, getFacilityById } from '~/server/controller/facility.server';
-import { Show } from 'solid-js';
 import { SubmitHandler } from '@formisch/solid';
 import { toast } from 'solid-sonner';
+import { UserRole } from '~/types';
+import { Show } from 'solid-js';
 
 export const route = {
   info: {
@@ -27,6 +28,7 @@ export const route = {
       label: 'New Facility',
       href: '/facility/new',
     },
+    role: [UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 export default function EditFacility() {
@@ -36,15 +38,15 @@ export default function EditFacility() {
   const navigate = useNavigate();
   const editFacilityAction = useAction(editFacility);
   const onSubmit: SubmitHandler<typeof FacilitySchema> = async (data) => {
-    const response = await editFacilityAction({ ...data, id: params.id });
-    if (response.status === 'success') {
+    try {
+      const result = await editFacilityAction({ ...data, id: params.id });
       toast('Facility has been edited', {
-        description: `${response.data.facility.name} has been edited successfully.`,
+        description: `${result.facility.name} has been edited successfully.`,
       });
-      navigate(`/facility/${response.data.facility.id}`);
-    } else {
-      toast('Failed to create facility', {
-        description: response.message,
+      navigate(`/facility/${result.facility.id}`);
+    } catch (error) {
+      toast('Failed to edit facility', {
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
@@ -61,8 +63,8 @@ export default function EditFacility() {
         <FacilityForm
           onSubmit={onSubmit}
           initialValues={{
-            name: facility()?.data?.facility?.name,
-            description: facility()?.data?.facility?.description as string,
+            name: facility()?.facility.name,
+            description: facility()?.facility.description as string,
           }}
         />
       </div>

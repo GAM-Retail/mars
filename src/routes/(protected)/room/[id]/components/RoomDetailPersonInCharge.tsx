@@ -30,24 +30,24 @@ export default function RoomDetailPersonInCharge(props: Readonly<Props>) {
       name: rp.personInCharge.name,
     }));
 
-  const handleAdd = async (userId: string) => {
-    const response = await addPersonInChargeActionFn(props.roomId, userId);
-    if (response.status === 'success') {
+const handleAdd = async (userId: string) => {
+    try {
+      await addPersonInChargeActionFn(props.roomId, userId);
       toast('Person in charge added');
-    } else {
+    } catch (error) {
       toast('Failed to add person in charge', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };
 
   const handleRemove = async (userId: string) => {
-    const response = await removePersonInChargeActionFn(props.roomId, userId);
-    if (response.status === 'success') {
+    try {
+      await removePersonInChargeActionFn(props.roomId, userId);
       toast('Person in charge removed');
-    } else {
+    } catch (error) {
       toast('Failed to remove person in charge', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };

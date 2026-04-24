@@ -4,6 +4,7 @@ import { SubmitHandler } from '@formisch/solid';
 import { toast } from 'solid-sonner';
 import { addRoom } from '~/server/controller/room.server';
 import RoomForm, { RoomSchema } from '~/routes/(protected)/room/components/RoomForm';
+import { UserRole } from '~/types';
 export const route = {
   info: {
     title: 'New Room',
@@ -16,6 +17,7 @@ export const route = {
       label: 'New Room',
       href: '/room/new',
     },
+    role: [UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 
@@ -23,19 +25,19 @@ export default function NewRoom() {
   const navigate = useNavigate();
   const addRoomAction = useAction(addRoom);
   const onSubmit: SubmitHandler<typeof RoomSchema> = async (data) => {
-    const response = await addRoomAction(data);
-    if (response.status === 'success') {
+    try {
+      const result = await addRoomAction(data);
       toast('Room has been created', {
-        description: `${response.data.room.name} has been created successfully.`,
+        description: `${result.room.name} has been created successfully.`,
         action: {
           label: 'Detail',
-          onClick: () => navigate(`/room/${response.data.room.id}`),
+          onClick: () => navigate(`/room/${result.room.id}`),
         },
       });
       navigate('/room');
-    } else {
+    } catch (error) {
       toast('Failed to create room', {
-        description: response.message,
+        description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   };

@@ -72,12 +72,13 @@ export default function RoomForm(props: Readonly<RoomFormProps>) {
           <TextField
             name={field.props.name}
             validationState={field?.errors?.length ? 'invalid' : 'valid'}
-            value={field.input}
-            onChange={field.onInput}
             required
           >
             <TextFieldLabel>Location</TextFieldLabel>
-            <TextFieldTextArea />
+            <TextFieldTextArea
+              value={field.input}
+              onInput={(e) => field.onInput(e.currentTarget.value)}
+            />
             <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
           </TextField>
         )}
@@ -87,11 +88,13 @@ export default function RoomForm(props: Readonly<RoomFormProps>) {
           <TextField
             name={field.props.name}
             validationState={field?.errors?.length ? 'invalid' : 'valid'}
-            value={field.input}
-            onChange={field.onInput}
+            required
           >
             <TextFieldLabel>Description</TextFieldLabel>
-            <TextFieldTextArea />
+            <TextFieldTextArea
+              value={field.input}
+              onInput={(e) => field.onInput(e.currentTarget.value)}
+            />
             <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
           </TextField>
         )}
