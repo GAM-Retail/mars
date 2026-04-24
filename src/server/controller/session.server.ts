@@ -1,29 +1,23 @@
 import { action, query, redirect } from '@solidjs/router';
-import db from './db';
 import {
   getSession,
   login,
   logout as logoutSession,
   validatePassword,
   validateNikOrEmail,
-} from './auth.server';
+} from '~/server/lib/auth.server';
 import { CurrentUser } from '~/types';
+import { getUserById } from '~/server/repository/user.server';
 
-export const getUser = query(async () => {
+export const getUser = query(async (): Promise<CurrentUser | null> => {
   'use server';
   try {
     const session = await getSession();
     const userId = session.data.userId;
     if (userId === undefined) throw new Error('User not found');
-    const user = await db.user.findUnique({ where: { id: userId } });
+    const user = await getUserById(userId);
     if (!user) throw new Error('User not found');
-    return {
-      id: user.id,
-      email: user.email,
-      nik: user.nik,
-      name: user.name,
-      role: user.role,
-    } as CurrentUser;
+    return user as CurrentUser;
   } catch {
     await logoutSession();
     return null;
