@@ -43,7 +43,7 @@ export async function login(nikOrEmail: string, password: string, type: 'nik' | 
   });
   if (!user) throw new Error('User not found');
   const isValid = await verifyPassword(password, user.password);
-  if (!isValid) throw new Error('Invalid login');
+  if (!isValid) throw new Error('Incorrect password, please try again');
   return user;
 }
 
