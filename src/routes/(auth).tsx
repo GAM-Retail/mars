@@ -1,6 +1,6 @@
 import { createEffect, Show } from 'solid-js';
 import { createAsync, RouteSectionProps, useNavigate } from '@solidjs/router';
-import { getUser } from '~/lib';
+import { getUser } from '~/server/controller/session.server';
 
 export default function Auth(props: Readonly<RouteSectionProps>) {
   const user = createAsync(() => getUser(), { deferStream: true });
