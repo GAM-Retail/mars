@@ -50,11 +50,11 @@ export default function UserDetail(props: Readonly<Props>) {
         </div>
         <div class="flex flex-col items-end justify-between">
           <DropdownMenu placement="right">
-            <DropdownMenuTrigger class="flex item-start">
+            <DropdownMenuTrigger class="flex item-start" aria-label="Options">
               <Cog class="h-6 w-6" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem as={A} href={`/user/${props.user.id}/edit`}>
+              <DropdownMenuItem as={A} href={`/user/${props.user.id}/edit`} onSelect={() => navigate(`/user/${props.user.id}/edit`)}>
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
