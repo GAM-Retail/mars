@@ -66,7 +66,11 @@ export default function RoomDetail(props: Readonly<Props>) {
               <Cog class="h-6 w-6" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem as={A} href={`/room/${props.room.id}/edit`} onSelect={() => navigate(`/room/${props.room.id}/edit`)}>
+              <DropdownMenuItem
+                as={A}
+                href={`/room/${props.room.id}/edit`}
+                onSelect={() => navigate(`/room/${props.room.id}/edit`)}
+              >
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -101,7 +105,7 @@ export default function RoomDetail(props: Readonly<Props>) {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div class="space-y-4">
           <div>
             <p class="text-xs text-muted-foreground mb-1">Description</p>
