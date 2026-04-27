@@ -42,6 +42,9 @@ export const createUserAction = action(
     name: string;
     password: string;
     role: UserRole;
+    ext?: string;
+    division?: string;
+    department?: string;
   }) => {
     'use server';
     await validateSessionWithRole('SUPERADMIN');
@@ -68,15 +71,31 @@ export const updateUserAction = action(
     nik: string;
     email: string;
     name: string;
-    role: UserRole;
+    role?: UserRole;
     password?: string;
+    ext?: string;
+    division?: string;
+    department?: string;
+    isProfileUpdate?: boolean;
   }) => {
     'use server';
-    await validateSessionWithRole('SUPERADMIN');
+    const userId = await validateSession();
 
     const existingUser = await getUserById(values.id);
     if (!existingUser) {
       throw new NotFoundError('User does not exist');
+    }
+
+    let currentRole: UserRole;
+
+    if (values.isProfileUpdate) {
+      if (values.id !== userId) {
+        throw new ForbiddenError('You can only update your own profile');
+      }
+      currentRole = existingUser.role;
+    } else {
+      await validateSessionWithRole('SUPERADMIN');
+      currentRole = values.role!;
     }
 
     const existingNik = await db.user.findUnique({
@@ -98,8 +117,11 @@ export const updateUserAction = action(
       nik: values.nik,
       email: values.email,
       name: values.name,
-      role: values.role,
+      role: currentRole,
       password: values.password,
+      ext: values.ext,
+      division: values.division,
+      department: values.department,
     });
 
     return { user: updatedUser };
@@ -119,47 +141,6 @@ export const deleteUserAction = action(async (id: string) => {
 
   return json({ success: true }, { revalidate: [] });
 });
-
-export const updateProfileAction = action(
-  async (values: { id: string; nik: string; email: string; name: string; password?: string }) => {
-    'use server';
-    const userId = await validateSession();
-
-    const existingUser = await getUserById(values.id);
-    if (!existingUser) {
-      throw new NotFoundError('User does not exist');
-    }
-
-    if (values.id !== userId) {
-      throw new ForbiddenError('You can only update your own profile');
-    }
-
-    const existingNik = await db.user.findUnique({
-      where: { nik: values.nik, NOT: { id: values.id } },
-    });
-    if (existingNik) {
-      throw new Error('NIK already exists');
-    }
-
-    const existingEmail = await db.user.findUnique({
-      where: { email: values.email, NOT: { id: values.id } },
-    });
-    if (existingEmail) {
-      throw new Error('Email already exists');
-    }
-
-    const updatedUser = await updateUser({
-      id: values.id,
-      nik: values.nik,
-      email: values.email,
-      name: values.name,
-      role: existingUser.role as UserRole,
-      password: values.password,
-    });
-
-    return { user: updatedUser };
-  },
-);
 
 export const changePasswordAction = action(
   async (values: { id: string; currentPassword: string; newPassword: string }) => {
@@ -186,10 +167,37 @@ export const changePasswordAction = action(
       nik: user.nik,
       email: user.email,
       name: user.name,
-      role: user.role as UserRole,
+      role: user.role,
       password: values.newPassword,
+      ext: user.ext ?? undefined,
+      division: user.division ?? undefined,
+      department: user.department ?? undefined,
     });
 
     return { success: true };
   },
 );
+
+export const resetPasswordAction = action(async (values: { id: string; newPassword: string }) => {
+  'use server';
+  await validateSessionWithRole('SUPERADMIN');
+
+  const user = await getUserById(values.id);
+  if (!user) {
+    throw new NotFoundError('User does not exist');
+  }
+
+  await updateUser({
+    id: values.id,
+    nik: user.nik,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    password: values.newPassword,
+    ext: user.ext ?? undefined,
+    division: user.division ?? undefined,
+    department: user.department ?? undefined,
+  });
+
+  return { success: true };
+});
