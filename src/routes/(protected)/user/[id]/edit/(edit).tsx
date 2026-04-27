@@ -6,13 +6,15 @@ import {
   useNavigate,
   useParams,
 } from '@solidjs/router';
-import { ArrowLeft } from 'lucide-solid';
+import { ArrowLeft, RotateCcw } from 'lucide-solid';
 import { toast } from 'solid-sonner';
 import { getUserByIdController, updateUserAction } from '~/server/controller/user.server';
 import UserForm, { UserSchema } from '~/routes/(protected)/user/components/UserForm';
 import { UserRole } from '~/types';
 import * as v from 'valibot';
-import { Show } from 'solid-js';
+import { Show, createSignal } from 'solid-js';
+import { ResetPasswordDialog } from '../components/ResetPasswordDialog';
+import { Button } from '~/components/ui/button';
 
 export const route = {
   info: {
@@ -35,6 +37,7 @@ export default function EditUser() {
   const navigate = useNavigate();
   const userResource = createAsync(() => getUserByIdController(params.id));
   const updateUser = useAction(updateUserAction);
+  const [passwordOpen, setPasswordOpen] = createSignal(false);
 
   const onSubmit = async (data: v.InferInput<typeof UserSchema>) => {
     try {
@@ -45,6 +48,9 @@ export default function EditUser() {
         name: data.name,
         role: data.role as UserRole,
         password: (data.password as string) || undefined,
+        ext: (data.ext as string) || undefined,
+        division: (data.division as string) || undefined,
+        department: (data.department as string) || undefined,
       });
       toast('User has been updated', {
         description: `${result.user.name} has been updated successfully.`,
@@ -69,7 +75,13 @@ export default function EditUser() {
             <ArrowLeft class=" h-4 w-4" />
             Back
           </A>
-          <h2 class="text-xl font-semibold">Edit user</h2>
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold">Edit user</h2>
+            <Button variant="outline" size="sm" onClick={() => setPasswordOpen(true)}>
+              <RotateCcw class="h-4 w-4 mr-2" />
+              Reset Password
+            </Button>
+          </div>
         </span>
         <UserForm
           onSubmit={onSubmit}
@@ -79,9 +91,18 @@ export default function EditUser() {
             name: userResource()?.user.name,
             email: userResource()?.user.email,
             role: userResource()?.user.role,
+            ext: userResource()?.user.ext || undefined,
+            division: userResource()?.user.division || undefined,
+            department: userResource()?.user.department || undefined,
           }}
         />
       </div>
+      <ResetPasswordDialog
+        userId={params.id}
+        userName={userResource()?.user.name ?? ''}
+        open={passwordOpen()}
+        onOpenChange={setPasswordOpen}
+      />
     </Show>
   );
 }
