@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { createForm, DeepPartial, Field, Form } from '@formisch/solid';
+import { Show } from 'solid-js';
 import {
   TextField,
   TextFieldErrorMessage,
@@ -31,6 +32,9 @@ export const UserSchema = v.object({
   password: v.optional(
     v.pipe(v.string(), v.minLength(6, 'Password must be at least 6 characters')),
   ),
+  ext: v.optional(v.string()),
+  division: v.optional(v.string()),
+  department: v.optional(v.string()),
 });
 
 type UserFormProps = {
@@ -132,17 +136,61 @@ export default function UserForm(props: Readonly<UserFormProps>) {
           </TextField>
         )}
       </Field>
-      <Field of={userForm} path={['password']}>
+      <Show when={props.showPassword}>
+        <Field of={userForm} path={['password']}>
+          {(field) => (
+            <TextField
+              name={field.props.name}
+              validationState={field?.errors?.length ? 'invalid' : 'valid'}
+              value={field.input}
+              onChange={field.onInput}
+              required={props.showPassword}
+            >
+              <TextFieldLabel>Password</TextFieldLabel>
+              <TextFieldInput type="password" />
+              <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
+            </TextField>
+          )}
+        </Field>
+      </Show>
+      <Field of={userForm} path={['ext']}>
         {(field) => (
           <TextField
             name={field.props.name}
             validationState={field?.errors?.length ? 'invalid' : 'valid'}
             value={field.input}
             onChange={field.onInput}
-            required={props.showPassword}
           >
-            <TextFieldLabel>Password</TextFieldLabel>
-            <TextFieldInput type="password" />
+            <TextFieldLabel>Extension</TextFieldLabel>
+            <TextFieldInput placeholder="1234" />
+            <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
+          </TextField>
+        )}
+      </Field>
+      <Field of={userForm} path={['division']}>
+        {(field) => (
+          <TextField
+            name={field.props.name}
+            validationState={field?.errors?.length ? 'invalid' : 'valid'}
+            value={field.input}
+            onChange={field.onInput}
+          >
+            <TextFieldLabel>Division</TextFieldLabel>
+            <TextFieldInput />
+            <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
+          </TextField>
+        )}
+      </Field>
+      <Field of={userForm} path={['department']}>
+        {(field) => (
+          <TextField
+            name={field.props.name}
+            validationState={field?.errors?.length ? 'invalid' : 'valid'}
+            value={field.input}
+            onChange={field.onInput}
+          >
+            <TextFieldLabel>Department</TextFieldLabel>
+            <TextFieldInput />
             <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
           </TextField>
         )}
