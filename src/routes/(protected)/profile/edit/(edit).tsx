@@ -10,7 +10,7 @@ import {
   TextFieldLabel,
 } from '~/components/ui/text-field';
 import { Button } from '~/components/ui/button';
-import { updateProfileAction } from '~/server/controller/user.server';
+import { updateUserAction } from '~/server/controller/user.server';
 import { UserRole } from '~/types';
 import { Show } from 'solid-js';
 import { getUser } from '~/server/controller/session.server';
@@ -39,12 +39,15 @@ const ProfileSchema = v.object({
     v.email('Please enter a valid email'),
   ),
   name: v.pipe(v.string('Please enter a name'), v.nonEmpty('Please enter a name')),
+  ext: v.optional(v.string()),
+  division: v.optional(v.string()),
+  department: v.optional(v.string()),
 });
 
 export default function EditProfile() {
   const navigate = useNavigate();
   const userResource = createAsync(() => getUser());
-  const updateProfile = useAction(updateProfileAction);
+  const updateProfile = useAction(updateUserAction);
 
   const onSubmit = async (data: v.InferInput<typeof ProfileSchema>) => {
     const userId = userResource()?.id;
@@ -56,6 +59,10 @@ export default function EditProfile() {
         nik: data.nik,
         email: data.email,
         name: data.name,
+        ext: (data.ext as string) || undefined,
+        division: (data.division as string) || undefined,
+        department: (data.department as string) || undefined,
+        isProfileUpdate: true,
       });
       toast('Profile has been updated', {
         description: `${result.user.name} profile has been updated successfully.`,
@@ -86,6 +93,9 @@ export default function EditProfile() {
               nik: userResource()?.nik,
               name: userResource()?.name,
               email: userResource()?.email,
+              ext: userResource()?.ext || undefined,
+              division: userResource()?.division || undefined,
+              department: userResource()?.department || undefined,
             },
           })}
           onSubmit={(data, e) => {
@@ -135,6 +145,48 @@ export default function EditProfile() {
               >
                 <TextFieldLabel>Email</TextFieldLabel>
                 <TextFieldInput type="email" />
+                <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
+              </TextField>
+            )}
+          </Field>
+          <Field of={createForm({ schema: ProfileSchema })} path={['ext']}>
+            {(field) => (
+              <TextField
+                name={field.props.name}
+                validationState={field?.errors?.length ? 'invalid' : 'valid'}
+                value={field.input}
+                onChange={field.onInput}
+              >
+                <TextFieldLabel>Extension</TextFieldLabel>
+                <TextFieldInput placeholder="1234" />
+                <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
+              </TextField>
+            )}
+          </Field>
+          <Field of={createForm({ schema: ProfileSchema })} path={['division']}>
+            {(field) => (
+              <TextField
+                name={field.props.name}
+                validationState={field?.errors?.length ? 'invalid' : 'valid'}
+                value={field.input}
+                onChange={field.onInput}
+              >
+                <TextFieldLabel>Division</TextFieldLabel>
+                <TextFieldInput />
+                <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
+              </TextField>
+            )}
+          </Field>
+          <Field of={createForm({ schema: ProfileSchema })} path={['department']}>
+            {(field) => (
+              <TextField
+                name={field.props.name}
+                validationState={field?.errors?.length ? 'invalid' : 'valid'}
+                value={field.input}
+                onChange={field.onInput}
+              >
+                <TextFieldLabel>Department</TextFieldLabel>
+                <TextFieldInput />
                 <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
               </TextField>
             )}
