@@ -56,7 +56,7 @@ const items: SidebarItem[] = [
       },
       {
         title: 'My Schedule',
-        url: '#',
+        url: '/reservation',
         icon: Calendar,
       },
       {
