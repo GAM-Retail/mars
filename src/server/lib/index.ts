@@ -27,3 +27,7 @@ export const validateSessionWithRole = async (requiredRole: UserRole): Promise<s
 
   return userId;
 };
+
+export const dateTimeBuilder = (date: string, time: string) => {
+  return new Date(`${date}T${time}:00`);
+};
