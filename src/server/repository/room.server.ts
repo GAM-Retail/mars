@@ -134,3 +134,28 @@ export const removePersonInCharge = async (roomId: string, personInChargeId: str
   }
   return null;
 };
+
+export const isPersonInCharge = async (userId: string, roomId: string) => {
+  const pic = await db.roomPersonInCharge.findFirst({
+    where: {
+      roomId,
+      personInChargeId: userId,
+    },
+  });
+  return !!pic;
+};
+
+export const getRoomsByPersonInCharge = (userId: string) => {
+  return db.room.findMany({
+    where: {
+      roomPersonInCharges: {
+        some: {
+          personInChargeId: userId,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+};
