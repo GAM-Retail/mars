@@ -11,7 +11,7 @@ import {
 } from '~/server/repository/room.server';
 import { action, json, query } from '@solidjs/router';
 import { getAllFacility } from '~/server/controller/facility.server';
-import { validateSession } from '~/server/lib';
+import { validateSession, validateSessionWithRole } from '~/server/lib';
 import { ForbiddenError, NotFoundError } from '~/lib/error';
 
 export const addRoom = action(
@@ -86,11 +86,11 @@ export const getAllFacilitiesForRoom = query(async () => {
 
 export const addFacilityToRoomAction = action(async (roomId: string, facilityId: string) => {
   'use server';
-  const userId = await validateSession();
+  const isSuperAdmin = await validateSessionWithRole('SUPERADMIN');
 
   const room = await getById(roomId);
   if (!room) throw new NotFoundError('Room does not exist');
-  if (room.createdBy !== userId) throw new ForbiddenError();
+  if (!isSuperAdmin) throw new ForbiddenError();
 
   await addFacilityToRoom(roomId, facilityId);
 
@@ -99,11 +99,11 @@ export const addFacilityToRoomAction = action(async (roomId: string, facilityId:
 
 export const removeFacilityFromRoomAction = action(async (roomId: string, facilityId: string) => {
   'use server';
-  const userId = await validateSession();
+  const isSuperAdmin = await validateSessionWithRole('SUPERADMIN');
 
   const room = await getById(roomId);
   if (!room) throw new NotFoundError('Room does not exist');
-  if (room.createdBy !== userId) throw new ForbiddenError();
+  if (!isSuperAdmin) throw new ForbiddenError();
 
   await removeFacilityFromRoom(roomId, facilityId);
 
@@ -113,10 +113,10 @@ export const removeFacilityFromRoomAction = action(async (roomId: string, facili
 export const addPersonInChargeAction = action(async (roomId: string, personInChargeId: string) => {
   'use server';
   const userId = await validateSession();
-
+  const isSuperAdmin = await validateSessionWithRole('SUPERADMIN');
   const room = await getById(roomId);
   if (!room) throw new NotFoundError('Room does not exist');
-  if (room.createdBy !== userId) throw new ForbiddenError();
+  if (room.createdBy !== userId && !isSuperAdmin) throw new ForbiddenError();
 
   await addPersonInCharge(roomId, personInChargeId);
 
@@ -126,11 +126,11 @@ export const addPersonInChargeAction = action(async (roomId: string, personInCha
 export const removePersonInChargeAction = action(
   async (roomId: string, personInChargeId: string) => {
     'use server';
-    const userId = await validateSession();
+    const isSuperAdmin = await validateSessionWithRole('SUPERADMIN');
 
     const room = await getById(roomId);
     if (!room) throw new NotFoundError('Room does not exist');
-    if (room.createdBy !== userId) throw new ForbiddenError();
+    if (!isSuperAdmin) throw new ForbiddenError();
 
     await removePersonInCharge(roomId, personInChargeId);
 
