@@ -6,6 +6,8 @@ import {
   edit,
   getAll,
   getById,
+  getRoomsByPersonInCharge as getRoomsByPersonInChargeQuery,
+  isPersonInCharge,
   removeFacilityFromRoom,
   removePersonInCharge,
 } from '~/server/repository/room.server';
@@ -110,6 +112,16 @@ export const removeFacilityFromRoomAction = action(async (roomId: string, facili
   return { success: true };
 });
 
+export const getRoomsByPersonInCharge = query(async () => {
+  'use server';
+  const userId = await validateSessionWithRole('ADMIN');
+  return getRoomsByPersonInChargeQuery(userId);
+}, 'getRoomsByPersonInCharge');
+
+export const validateRoomPersonInCharge = (userId: string, roomId: string) => {
+  'use server';
+  return isPersonInCharge(userId, roomId);
+};
 export const addPersonInChargeAction = action(async (roomId: string, personInChargeId: string) => {
   'use server';
   const userId = await validateSession();
