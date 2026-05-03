@@ -10,6 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     steps:
+      - name: Install WireGuard
+        run: sudo apt-get update && sudo apt-get install -y wireguard resolvconf
+
+      - name: Connect to Corporate VPN
+        run: |
+          # Write the secret config to the correct WireGuard directory
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          
+          # Ensure strict permissions so wg-quick doesn't complain
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          
+          # Bring the tunnel up
+          sudo wg-quick up wg0
+          
+          # Optional: Ping the server once to verify the tunnel is routing properly
+          ping -c 1 ${{ secrets.HOST }}
       - name: Deploy to DEV server via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -19,16 +35,16 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e 
-
             cd /opt/mars
 
             git fetch origin master
             git reset --hard origin/master
 
             docker compose --env-file .env build 
-
             docker compose --env-file .env up -d
-
             docker image prune -f
 
             echo "Deployed latest master to DEV server successfully"
+      - name: Disconnect VPN
+        if: always()
+        run: sudo wg-quick down wg0
