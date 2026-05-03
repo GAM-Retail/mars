@@ -7,6 +7,7 @@ allowBuilds:
   msw: true
   prisma: true
 overrides:
+  '@hono/node-server@<1.19.13': '>=1.19.13'
   h3@>=2.0.0 <=2.0.1-rc.14: '>=2.0.1-rc.15'
   h3@>=2.0.0-0 <2.0.1-rc.15: '>=2.0.1-rc.15'
   h3@>=2.0.0-beta.0 <=2.0.1-rc.16: '>=2.0.1-rc.17'
