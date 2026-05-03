@@ -1,5 +1,18 @@
 import db from '~/lib/db';
 
+export const getAllReservations = async () => {
+  return db.roomReservation.findMany({
+    include: {
+      room: true,
+      reservedBy: {
+        select: { id: true, name: true, email: true, nik: true, department: true, division: true },
+      },
+      organizer: true,
+    },
+    orderBy: { startTime: 'desc' },
+  });
+};
+
 export const getAllReservationsByPersonInCharge = async (userId: string, roomIds?: string[]) => {
   if (roomIds?.length === 0) {
     return [];
