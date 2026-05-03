@@ -4,6 +4,8 @@ import { loginAction } from '~/server/controller/session.server';
 import { Button } from '~/components/ui/button';
 import { TextField, TextFieldInput, TextFieldLabel } from '~/components/ui/text-field';
 import { ModeToggle } from '~/components/ModeToggle';
+import { A } from '@solidjs/router';
+import { Calendar } from 'lucide-solid';
 
 export default function Login(props: Readonly<RouteSectionProps>) {
   const loggingIn = useSubmission(loginAction);
@@ -52,6 +54,14 @@ export default function Login(props: Readonly<RouteSectionProps>) {
                 {loggingIn.result?.message}
               </p>
             </Show>
+            <div class="md:hidden mt-4 pt-4 border-t">
+              <A href="/calendar">
+                <Button variant="outline" class="w-full flex items-center justify-center gap-2">
+                  <Calendar class="size-4" />
+                  Check Calendar
+                </Button>
+              </A>
+            </div>
           </form>
         </div>
       </div>
@@ -73,7 +83,12 @@ export default function Login(props: Readonly<RouteSectionProps>) {
           <p class="text-sm text-white/80 max-w-xs">
             Book and manage your meeting rooms efficiently in one place.
           </p>
-          <Button variant="secondary" class="mt-4 w-full flex items-center justify-center gap-2">
+          <Button
+            as={A}
+            href="/calendar"
+            variant="secondary"
+            class="mt-4 w-full flex items-center justify-center gap-2"
+          >
             📅 Check calendar
           </Button>
         </div>
