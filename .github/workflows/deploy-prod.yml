@@ -37,6 +37,7 @@ jobs:
           SESSION_SECRET: ${{ vars.SESSION_SECRET }}
           INITIAL_USER_PASSWORD: ${{ vars.INITIAL_USER_PASSWORD }}
           PORT: ${{ vars.PORT }}
+          NODE_ENV: production
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
