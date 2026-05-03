@@ -30,12 +30,14 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
   const user = createAsync(() => getUser(), { deferStream: true });
 
   const navigate = useNavigate();
+  const location = useLocation();
   createEffect(() => {
     if (!user()) {
       navigate('/login', { replace: true });
+    } else if (location.pathname === '/') {
+      navigate('/dashboard', { replace: true });
     }
-  });
-  const location = useLocation();
+});
   const matches = useCurrentMatches();
   const title = createMemo(() => matches().at(matches()?.length - 1)?.route?.info?.title);
   const description = createMemo(
