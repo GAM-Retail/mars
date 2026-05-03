@@ -19,7 +19,11 @@ const seedUser = async () => {
   };
 
   console.log('Seeding user: ', userData.email);
-  const user = await prisma.user.create({ data: userData });
+  const user = await prisma.user.upsert({
+    where: { email: userData.email },
+    update: {},
+    create: userData,
+  });
   console.log('User created: ', user.email);
 };
 
