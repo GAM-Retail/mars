@@ -197,3 +197,13 @@ export const getReservationsByRoom = query(async (roomId: string) => {
 
   return await getReservationsByRoomId(roomId);
 }, 'getReservationsByRoom');
+
+export const getPublicReservations = query(async () => {
+  'use server';
+  const reservations = await getAllReservations();
+
+  return reservations.map((reservation) => ({
+    ...reservation,
+    agenda: 'Reserved',
+  }));
+}, 'getPublicReservations');
