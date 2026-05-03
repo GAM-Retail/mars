@@ -11,6 +11,7 @@ export const route = {
     title: 'Dashboard',
     description: 'Reservation calendar overview',
     breadcrumb: { href: '/dashboard', label: 'Dashboard' },
+    newButtonState: { label: 'New Reservation', href: '/reservation/new' },
     role: [UserRole.ADMIN],
   },
 } satisfies RouteDefinition;
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div class="h-full max-h-[80vh] w-full px-2">
+    <div class="h-full max-h-[80vh] w-full p-2">
       <div class="mb-2 flex items-center gap-2">
         <Show when={rooms()}>
           {(data) => (
