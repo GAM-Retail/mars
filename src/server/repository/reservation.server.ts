@@ -42,6 +42,20 @@ export const getReservationById = async (id: string) => {
   });
 };
 
+export const getReservationsByRoomId = async (roomId: string) => {
+  return db.roomReservation.findMany({
+    where: { roomId },
+    include: {
+      room: true,
+      reservedBy: {
+        select: { id: true, name: true, email: true, nik: true, department: true, division: true },
+      },
+      organizer: true,
+    },
+    orderBy: { startTime: 'desc' },
+  });
+};
+
 export const createReservation = async (data: {
   roomId: string;
   reservedById: string;
