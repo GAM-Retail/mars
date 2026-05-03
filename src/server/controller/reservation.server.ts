@@ -1,11 +1,12 @@
 import { action, json, query } from '@solidjs/router';
 import {
-  getReservationById,
   createReservation,
-  updateReservation,
   deleteReservation,
-  getAllReservationsByPersonInCharge,
   getAllReservations,
+  getAllReservationsByPersonInCharge,
+  getReservationById,
+  getReservationsByRoomId,
+  updateReservation,
 } from '~/server/repository/reservation.server';
 import { dateTimeBuilder, validateSessionWithRole } from '~/server/lib';
 import { NotFoundError } from '~/lib/error';
@@ -15,42 +16,8 @@ import { validateRoomPersonInCharge } from '~/server/controller/room.server';
 export const getAllReservationsForCalendar = query(async () => {
   'use server';
   await validateSessionWithRole('ADMIN');
-  const reservations = await getAllReservations();
 
-  return reservations.map((reservation) => ({
-    id: reservation.id,
-    roomId: reservation.roomId,
-    room: {
-      id: reservation.room.id,
-      name: reservation.room.name,
-      location: reservation.room.location,
-      capacity: reservation.room.capacity,
-    },
-    reservedById: reservation.reservedById,
-    reservedBy: {
-      id: reservation.reservedBy.id,
-      name: reservation.reservedBy.name,
-      nik: reservation.reservedBy.nik,
-      email: reservation.reservedBy.email,
-      department: reservation.reservedBy.department,
-      division: reservation.reservedBy.division,
-    },
-    organizerId: reservation.organizerId,
-    organizer: {
-      id: reservation.organizer.id,
-      nik: reservation.organizer.nik,
-      name: reservation.organizer.name,
-      email: reservation.organizer.email,
-      phone: reservation.organizer.phone,
-      department: reservation.organizer.department,
-      division: reservation.organizer.division,
-    },
-    startTime: reservation.startTime,
-    endTime: reservation.endTime,
-    agenda: reservation.agenda,
-    createdAt: reservation.createdAt,
-    updatedAt: reservation.updatedAt,
-  }));
+  return await getAllReservations();
 }, 'getAllReservationsForCalendar');
 
 export const getAllReservationsByPersonInChargeQuery = query(async (roomIds: string[]) => {
@@ -219,3 +186,14 @@ export const deleteReservationAction = action(async (id: string) => {
 
   return json({ success: true }, { revalidate: [] });
 });
+
+export const getReservationsByRoom = query(async (roomId: string) => {
+  'use server';
+  await validateSessionWithRole('ADMIN');
+  const isPic = await validateRoomPersonInCharge(await validateSessionWithRole('ADMIN'), roomId);
+  if (!isPic) {
+    throw new Error('You are not the person in charge for this room');
+  }
+
+  return await getReservationsByRoomId(roomId);
+}, 'getReservationsByRoom');
