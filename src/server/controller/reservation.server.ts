@@ -5,13 +5,55 @@ import {
   updateReservation,
   deleteReservation,
   getAllReservationsByPersonInCharge,
+  getAllReservations,
 } from '~/server/repository/reservation.server';
 import { dateTimeBuilder, validateSessionWithRole } from '~/server/lib';
 import { NotFoundError } from '~/lib/error';
 import { createOrUpdateOrganizer } from '~/server/controller/organizer.server';
 import { validateRoomPersonInCharge } from '~/server/controller/room.server';
 
-export const getAllReservations = query(async (roomIds: string[]) => {
+export const getAllReservationsForCalendar = query(async () => {
+  'use server';
+  await validateSessionWithRole('ADMIN');
+  const reservations = await getAllReservations();
+
+  return reservations.map((reservation) => ({
+    id: reservation.id,
+    roomId: reservation.roomId,
+    room: {
+      id: reservation.room.id,
+      name: reservation.room.name,
+      location: reservation.room.location,
+      capacity: reservation.room.capacity,
+    },
+    reservedById: reservation.reservedById,
+    reservedBy: {
+      id: reservation.reservedBy.id,
+      name: reservation.reservedBy.name,
+      nik: reservation.reservedBy.nik,
+      email: reservation.reservedBy.email,
+      department: reservation.reservedBy.department,
+      division: reservation.reservedBy.division,
+    },
+    organizerId: reservation.organizerId,
+    organizer: {
+      id: reservation.organizer.id,
+      nik: reservation.organizer.nik,
+      name: reservation.organizer.name,
+      email: reservation.organizer.email,
+      phone: reservation.organizer.phone,
+      department: reservation.organizer.department,
+      division: reservation.organizer.division,
+    },
+    startTime: reservation.startTime,
+    endTime: reservation.endTime,
+    agenda: reservation.agenda,
+    createdAt: reservation.createdAt,
+    updatedAt: reservation.updatedAt,
+  }));
+}, 'getAllReservationsForCalendar');
+
+export const getAllReservationsByPersonInChargeQuery = query(async (roomIds: string[]) => {
   'use server';
   const userId = await validateSessionWithRole('ADMIN');
   return await getAllReservationsByPersonInCharge(userId, roomIds).then((reservations) => {
@@ -29,7 +71,7 @@ export const getAllReservations = query(async (roomIds: string[]) => {
       agenda: reservation.agenda,
     }));
   });
-}, 'getAllReservations');
+}, 'getAllReservationsByPersonInChargeQuery');
 
 export const getReservationByIdController = query(async (id: string) => {
   'use server';
