@@ -61,7 +61,7 @@ const items: SidebarItem[] = [
       },
       {
         title: 'Room Info',
-        url: '#',
+        url: '/my-rooms',
         icon: Presentation,
       },
     ],
