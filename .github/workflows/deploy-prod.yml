@@ -38,16 +38,23 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e 
-            mkdir /home/${{ secrets.USERNAME }}/app/mars && cd /home/${{ secrets.USERNAME }}/app/mars
-
-            git fetch origin master
-            git reset --hard origin/master
-
+            mkdir -p /home/${{ secrets.USERNAME }}/app/mars
+            cd /home/${{ secrets.USERNAME }}/app/mars
+            # State-Aware Git Sync
+            if [ ! -d ".git" ]; then
+              echo "Repository not found. Cloning fresh..."
+              # Replace this URL with your actual repository URL
+              git clone git@github.com:GAM-Retail/mars.git .
+            else
+              echo "Repository exists. Fetching updates..."
+              git fetch origin master
+              git reset --hard origin/master
+            fi
+            
             docker compose --env-file .env build 
             docker compose --env-file .env up -d
             docker image prune -f
-
-            echo "Deployed latest master to PROD server successfully"
+            echo "Deployed latest master to DEV server successfully"
       - name: Disconnect VPN
         if: always()
         run: sudo wg-quick down wg0
