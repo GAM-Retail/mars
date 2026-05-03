@@ -3,13 +3,13 @@ import { DataTable } from '~/components/DataTable';
 import type { ColumnDef } from '@tanstack/solid-table';
 import { TableColumnHeader } from '~/components/ui/table-column-header';
 import { TableRowActions } from '~/components/ui/table-row-actions';
-import { getAllReservations } from '~/server/controller/reservation.server';
+import { getAllReservationsByPersonInChargeQuery } from '~/server/controller/reservation.server';
 import { UserRole } from '~/types';
 import { Show, createSignal, createEffect } from 'solid-js';
 import RoomsFilter from '~/routes/(protected)/reservation/components/RoomsFilter';
 import { getRoomsByPersonInCharge } from '~/server/controller/room.server';
 
-const columns: ColumnDef<Awaited<ReturnType<typeof getAllReservations>>[number]>[] = [
+const columns: ColumnDef<Awaited<ReturnType<typeof getAllReservationsByPersonInChargeQuery>>[number]>[] = [
   { accessorKey: 'id', header: 'ID' },
   {
     accessorKey: 'roomName',
@@ -89,7 +89,7 @@ export default function ReservationPage() {
       setSelectedRooms(data.map((room) => room.id));
     }
   });
-  const resource = createAsync(() => getAllReservations(selectedRooms()));
+  const resource = createAsync(() => getAllReservationsByPersonInChargeQuery(selectedRooms()));
   return (
     <div class="px-4 py-2 bg-secondary">
       <div class="flex flex-col sm:flex-row items-start sm:items-center">
