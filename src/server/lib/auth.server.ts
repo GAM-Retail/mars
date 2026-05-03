@@ -68,5 +68,8 @@ export function getSession() {
   if (!SESSION_SECRET) throw new Error('SESSION_SECRET is not defined');
   return useSession({
     password: SESSION_SECRET,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+    },
   });
 }
