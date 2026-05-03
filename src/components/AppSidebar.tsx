@@ -51,7 +51,7 @@ const items: SidebarItem[] = [
     items: [
       {
         title: 'Dashboard',
-        url: '/',
+        url: '/dashboard',
         icon: LayoutDashboard,
       },
       {
