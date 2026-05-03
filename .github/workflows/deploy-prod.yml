@@ -1,0 +1,37 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'v1.0.0'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy to PROD server via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e 
+
+            cd /opt/mars
+
+            git fetch origin ${{ github.event.inputs.version }}
+            git checkout ${{ github.event.inputs.version }}
+
+            docker compose --env-file .env build 
+
+            docker compose --env-file .env up -d
+
+            docker image prune -f
+
+            echo "Deployed version ${{ github.event.inputs.version }} to PROD server successfully"
