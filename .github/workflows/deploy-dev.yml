@@ -33,11 +33,13 @@ jobs:
           SHADOW_DATABASE_URL: ${{ vars.SHADOW_DATABASE_URL }}
           SESSION_SECRET: ${{ vars.SESSION_SECRET }}
           INITIAL_USER_PASSWORD: ${{ vars.INITIAL_USER_PASSWORD }}
+          PORT: ${{ vars.PORT }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
+          envs: DATABASE_URL, SHADOW_DATABASE_URL, SESSION_SECRET, INITIAL_USER_PASSWORD, PORT
           script: |
             set -e 
             mkdir -p /home/${{ secrets.USERNAME }}/app/mars
