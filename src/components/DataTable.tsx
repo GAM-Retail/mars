@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   SortingState,
   VisibilityState,
+  FilterFn,
 } from '@tanstack/solid-table';
 
 import {
@@ -30,6 +31,12 @@ import { TextField, TextFieldInput } from '~/components/ui/text-field';
 import { Button } from '~/components/ui/button';
 import { ChevronDown } from 'lucide-solid';
 import { TablePagination } from '~/components/ui/table-pagination';
+import { DateFilter } from '~/components/ui/date-filter';
+
+interface DateRangeFilter {
+  from?: string;
+  to?: string;
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -37,6 +44,9 @@ interface DataTableProps<TData, TValue> {
   showSearchBar?: boolean;
   searchBy?: keyof TData;
   searchPlaceholder?: string;
+  showDateFilter?: boolean;
+  dateFilterBy?: string;
+  dateFilterPlaceholder?: string;
 }
 
 export function DataTable<TData, TValue>(props: Readonly<DataTableProps<TData, TValue>>) {
@@ -46,6 +56,33 @@ export function DataTable<TData, TValue>(props: Readonly<DataTableProps<TData, T
     id: false, // hide id column by default
   });
   const [rowSelection, setRowSelection] = createSignal({});
+
+  const dateRangeFilterFn: FilterFn<TData> = (
+    row,
+    columnId,
+    filterValue: DateRangeFilter | undefined,
+  ) => {
+    if (!filterValue || (!filterValue.from && !filterValue.to)) return true;
+
+    const rowDate = row.getValue(columnId);
+    if (!rowDate) return false;
+
+    const rowTime = new Date(rowDate as Date).getTime();
+    const fromTime = filterValue.from ? new Date(filterValue.from).getTime() : 0;
+    const toTime = filterValue.to ? new Date(filterValue.to).getTime() + 86400000 : Infinity;
+
+    return rowTime >= fromTime && rowTime <= toTime;
+  };
+  const handleDateFilterChange = (filter: { from?: string; to?: string } | undefined) => {
+    if (!props.dateFilterBy) return;
+
+    if (!filter?.from && !filter?.to) {
+      table.getColumn(props.dateFilterBy)?.setFilterValue(undefined);
+    } else {
+      table.getColumn(props.dateFilterBy)?.setFilterValue(filter);
+    }
+  };
+
   const table = createSolidTable({
     get data() {
       return props.data;
@@ -57,6 +94,9 @@ export function DataTable<TData, TValue>(props: Readonly<DataTableProps<TData, T
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    filterFns: {
+      dateRange: dateRangeFilterFn,
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -79,7 +119,7 @@ export function DataTable<TData, TValue>(props: Readonly<DataTableProps<TData, T
 
   return (
     <div class="w-full">
-      <div class="flex items-center py-4">
+      <div class="flex items-center justify-between gap-4 py-4">
         <Show when={props.showSearchBar && props.searchBy}>
           <TextField
             value={(table.getColumn(String(props.searchBy))?.getFilterValue() as string) ?? ''}
@@ -91,26 +131,34 @@ export function DataTable<TData, TValue>(props: Readonly<DataTableProps<TData, T
             />
           </TextField>
         </Show>
-        <DropdownMenu placement="bottom-end">
-          <DropdownMenuTrigger as={Button<'button'>} size="sm" variant="outline" class="ml-auto">
-            Columns <ChevronDown />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <For each={table.getAllColumns().filter((column) => column.getCanHide())}>
-              {(column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    class="capitalize"
-                    checked={column.getIsVisible()}
-                    onChange={(value) => column.toggleVisibility(value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              }}
-            </For>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div class="flex items-center gap-4">
+          <Show when={props.showDateFilter && props.dateFilterBy}>
+            <DateFilter
+              columnId={props.dateFilterBy as string}
+              onFilterChange={handleDateFilterChange}
+            />
+          </Show>
+          <DropdownMenu placement="bottom-end">
+            <DropdownMenuTrigger as={Button<'button'>} size="sm" variant="outline" class="ml-auto">
+              Columns <ChevronDown />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <For each={table.getAllColumns().filter((column) => column.getCanHide())}>
+                {(column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      class="capitalize"
+                      checked={column.getIsVisible()}
+                      onChange={(value) => column.toggleVisibility(value)}
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                }}
+              </For>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       <div class="min-h-100">
         <div class="rounded-md border">

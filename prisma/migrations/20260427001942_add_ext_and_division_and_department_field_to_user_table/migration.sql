@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `tm_users` ADD COLUMN `department` VARCHAR(191) NULL DEFAULT '-',
+    ADD COLUMN `division` VARCHAR(191) NULL DEFAULT '-',
+    ADD COLUMN `ext` VARCHAR(191) NULL DEFAULT '-';

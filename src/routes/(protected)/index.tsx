@@ -1,7 +1,7 @@
-import { logout } from '~/server/controller/session.server';
-import { useCurrentUser } from '~/hooks/useCurrentUser';
-import { RouteDefinition } from '@solidjs/router';
+import { RouteDefinition, A } from '@solidjs/router';
 import { UserRole } from '~/types';
+import { Button } from '~/components/ui/button';
+import { LoaderCircle, ArrowRight } from 'lucide-solid';
 
 export const route = {
   info: {
@@ -14,17 +14,25 @@ export const route = {
     },
   },
 } satisfies RouteDefinition;
+
 export default function Home() {
-  const userContext = useCurrentUser();
   return (
-    <div class="w-full space-y-2">
-      <h2 class="font-bold text-3xl text-primary">Hello {userContext?.currentUser?.name}</h2>
-      <h3 class="font-bold text-xl">Message board</h3>
-      <form action={logout} method="post">
-        <button name="logout" type="submit">
-          Logout
-        </button>
-      </form>
+    <div class="flex h-full w-full items-center justify-center">
+      <div class="flex flex-col items-center gap-4 text-center">
+        <LoaderCircle class="size-8 animate-spin text-primary" />
+        <div class="space-y-1">
+          <h2 class="text-xl font-semibold">Redirecting you to Dashboard...</h2>
+          <p class="text-sm text-muted-foreground">
+            Please wait while we take you to your dashboard.
+          </p>
+        </div>
+        <A href="/dashboard">
+          <Button variant="outline" class="mt-2 gap-2">
+            Go to Dashboard
+            <ArrowRight class="size-4" />
+          </Button>
+        </A>
+      </div>
     </div>
   );
 }

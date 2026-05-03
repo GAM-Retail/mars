@@ -12,6 +12,9 @@ export const getAllUsers = async () => {
       role: true,
       createdAt: true,
       updatedAt: true,
+      ext: true,
+      division: true,
+      department: true,
     },
     orderBy: { name: 'asc' },
   });
@@ -22,9 +25,12 @@ type UserPublic = {
   nik: string;
   email: string;
   name: string;
-  role: string;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
+  ext: string | null;
+  division: string | null;
+  department: string | null;
 };
 type UserFull = UserPublic & { password: string };
 
@@ -49,6 +55,9 @@ export async function getUserById(id: string, options: { includeSensitive?: bool
       role: true,
       createdAt: true,
       updatedAt: true,
+      ext: true,
+      division: true,
+      department: true,
       ...(includeSensitive && { password: true }),
     },
   });
@@ -60,6 +69,9 @@ export const createUser = async (data: {
   name: string;
   password: string;
   role: UserRole;
+  ext?: string;
+  division?: string;
+  department?: string;
 }) => {
   const hashedPassword = await hashPassword(data.password);
   return db.user.create({
@@ -69,6 +81,9 @@ export const createUser = async (data: {
       name: data.name,
       password: hashedPassword,
       role: data.role,
+      ext: data.ext,
+      division: data.division,
+      department: data.department,
     },
   });
 };
@@ -80,6 +95,9 @@ export const updateUser = async (data: {
   name: string;
   role: UserRole;
   password?: string;
+  ext?: string;
+  division?: string;
+  department?: string;
 }) => {
   return db.user.update({
     data: {
@@ -88,6 +106,9 @@ export const updateUser = async (data: {
       name: data.name,
       role: data.role,
       ...(data.password && { password: await hashPassword(data.password) }),
+      ext: data.ext,
+      division: data.division,
+      department: data.department,
     },
     where: { id: data.id },
   });

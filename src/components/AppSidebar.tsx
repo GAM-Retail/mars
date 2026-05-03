@@ -51,17 +51,17 @@ const items: SidebarItem[] = [
     items: [
       {
         title: 'Dashboard',
-        url: '/',
+        url: '/dashboard',
         icon: LayoutDashboard,
       },
       {
         title: 'My Schedule',
-        url: '#',
+        url: '/reservation',
         icon: Calendar,
       },
       {
         title: 'Room Info',
-        url: '#',
+        url: '/my-rooms',
         icon: Presentation,
       },
     ],

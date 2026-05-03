@@ -7,7 +7,7 @@ import { User } from '~/generated/prisma/client';
 import { getAllUsers } from '~/server/controller/user.server';
 import { UserRole } from '~/types';
 
-const columns: ColumnDef<User>[] = [
+const columns: ColumnDef<Omit<User, 'password'>>[] = [
   {
     accessorKey: 'id',
     header: 'Id',
