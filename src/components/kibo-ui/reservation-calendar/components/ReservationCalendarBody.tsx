@@ -147,7 +147,7 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
       const day = pd.prevMonthDaysArray[pd.prevMonthDays - fDay + i];
       if (day) {
         result.push(
-          <div class="relative flex h-full w-full flex-col gap-1 p-1 text-muted-foreground text-xs">
+          <div class="relative flex flex-col gap-1 p-1 text-muted-foreground text-xs">
             <span class="text-sm leading-none text-muted-foreground self-start px-1 py-[2px] rounded">
               {day}
             </span>
@@ -172,7 +172,7 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
       );
 
       result.push(
-        <div class="relative flex h-full w-full flex-col gap-1 border-t border-r p-1 text-xs">
+        <div class="relative flex flex-col gap-1 border-t border-r p-1 text-xs">
           <span
             class={cn(
               'text-sm leading-none text-muted-foreground self-start px-1 py-[2px] rounded',
@@ -182,7 +182,7 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
           >
             {day}
           </span>
-          <div class="flex flex-col gap-0.5 flex-1 overflow-hidden min-h-0">
+          <div class="flex flex-col gap-0.5 overflow-hidden">
             <For each={dayReservations.slice(0, 3)}>
               {(res) => (
                 <button
@@ -231,7 +231,7 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
         const day = nd.nextMonthDaysArray[i];
         if (day) {
           result.push(
-            <div class="relative flex h-full w-full flex-col gap-1 p-1 text-muted-foreground text-xs">
+            <div class="relative flex flex-col gap-1 p-1 text-muted-foreground text-xs">
               <span class="text-sm leading-none text-muted-foreground self-start px-1 py-[2px] rounded">
                 {day}
               </span>
@@ -244,10 +244,10 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
   });
 
   return (
-    <div class="grid h-full grow grid-cols-7 grid-rows-6">
+    <div class="grid h-full grid-cols-7 grid-rows-[repeat(6,1fr)]">
       <For each={prevDays()}>
         {(day) => (
-          <div class="relative  overflow-hidden border-t border-r bg-secondary/50">{day}</div>
+          <div class="relative overflow-hidden border-t border-r bg-secondary/50">{day}</div>
         )}
       </For>
       <For each={currentDays()}>
@@ -264,7 +264,7 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
       </For>
       <For each={nextDays()}>
         {(day) => (
-          <div class="relative  overflow-hidden border-t border-r bg-secondary/50">{day}</div>
+          <div class="relative overflow-hidden border-t border-r bg-secondary/50">{day}</div>
         )}
       </For>
     </div>
