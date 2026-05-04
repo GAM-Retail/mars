@@ -56,6 +56,7 @@ export const route = {
     newButtonState: {
       label: 'New Room',
       href: '/room/new',
+      role: [UserRole.SUPERADMIN],
     },
   },
 } satisfies RouteDefinition;

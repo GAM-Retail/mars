@@ -25,6 +25,7 @@ export const route = {
     newButtonState: {
       label: 'New Room',
       href: '/room/new',
+      role: [UserRole.SUPERADMIN],
     },
     role: [UserRole.SUPERADMIN],
   },
