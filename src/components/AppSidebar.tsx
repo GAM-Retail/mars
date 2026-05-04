@@ -71,6 +71,11 @@ const items: SidebarItem[] = [
     groupName: 'Management',
     items: [
       {
+        title: 'Dashboard',
+        url: '/dashboard',
+        icon: LayoutDashboard,
+      },
+      {
         title: 'User Management',
         url: '/user',
         icon: User,
