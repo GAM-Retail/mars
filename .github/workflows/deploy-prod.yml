@@ -69,8 +69,8 @@ jobs:
             NODE_ENV=$NODE_ENV
             EOF
             
-            docker compose --env-file .env build 
-            docker compose --env-file .env up -d
+            docker compose --env-file .env build --no-cache
+            docker compose --env-file .env up -d --force-recreate
             docker image prune -f
             echo "Deployed latest master to DEV server successfully"
       - name: Disconnect VPN
