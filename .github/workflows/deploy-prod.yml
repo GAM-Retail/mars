@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: DATABASE_URL, SHADOW_DATABASE_URL, SESSION_SECRET, INITIAL_USER_PASSWORD, PORT
+          envs: DATABASE_URL, SHADOW_DATABASE_URL, SESSION_SECRET, INITIAL_USER_PASSWORD, PORT, NODE_ENV
           script: |
             set -e 
             mkdir -p /home/${{ secrets.USERNAME }}/app/mars
