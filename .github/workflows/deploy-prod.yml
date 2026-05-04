@@ -66,6 +66,7 @@ jobs:
             SESSION_SECRET=$SESSION_SECRET
             INITIAL_USER_PASSWORD=$INITIAL_USER_PASSWORD
             PORT=$PORT
+            NODE_ENV=$NODE_ENV
             EOF
             
             docker compose --env-file .env build 
