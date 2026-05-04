@@ -1,5 +1,6 @@
 import { action, json, query } from '@solidjs/router';
 import {
+  checkOverlappingReservations,
   createReservation,
   deleteReservation,
   getAllReservations,
@@ -89,6 +90,12 @@ export const createReservationAction = action(
     if (startTime >= endTime) {
       throw new Error('End time must be after start time');
     }
+
+    const overlapping = await checkOverlappingReservations(values.roomId, startTime, endTime);
+    if (overlapping) {
+      throw new Error('This time slot conflicts with an existing reservation');
+    }
+
     const organizerId = await createOrUpdateOrganizer({
       nik: values.organizerNik,
       name: values.organizerName,

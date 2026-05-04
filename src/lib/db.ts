@@ -12,6 +12,7 @@ const adapter = new PrismaMariaDb({
   database: dbUrl.pathname.replace('/', ''),
   connectionLimit: 10,
   allowPublicKeyRetrieval: true,
+  timezone: '+07:00',
 });
 
 let prisma: PrismaClient;

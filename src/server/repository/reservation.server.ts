@@ -56,6 +56,34 @@ export const getReservationsByRoomId = async (roomId: string) => {
   });
 };
 
+export const checkOverlappingReservations = async (
+  roomId: string,
+  startTime: Date,
+  endTime: Date,
+  excludeReservationId?: string,
+) => {
+  const whereClause = {
+    roomId,
+    OR: [
+      {
+        startTime: { lt: endTime },
+        endTime: { gt: startTime },
+      },
+    ],
+  };
+
+  if (excludeReservationId) {
+    return db.roomReservation.findFirst({
+      where: {
+        ...whereClause,
+        id: { not: excludeReservationId },
+      },
+    });
+  }
+
+  return db.roomReservation.findFirst({ where: whereClause });
+};
+
 export const createReservation = async (data: {
   roomId: string;
   reservedById: string;
