@@ -70,6 +70,7 @@ export function getSession() {
     password: SESSION_SECRET,
     cookie: {
       secure: process.env.NODE_ENV === 'production',
+      path: '/',
     },
   });
 }
