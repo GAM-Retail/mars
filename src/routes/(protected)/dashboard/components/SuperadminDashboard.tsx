@@ -17,7 +17,7 @@ export default function SuperadminDashboard() {
       </div>
 
       <div class="text-sm text-muted-foreground mt-4">
-        <p>Version 0.1 • Gramedia Meeting Room System</p>
+        <p>Version 1.0 • Gramedia Meeting Room System</p>
       </div>
     </div>
   );
