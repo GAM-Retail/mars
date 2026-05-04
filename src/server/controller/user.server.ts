@@ -1,6 +1,7 @@
 import { action, json, query } from '@solidjs/router';
 import db from '~/lib/db';
 import {
+  checkUserCanBeDeleted,
   createUser,
   deleteUser,
   getAllUsers as getAllUsersRepository,
@@ -135,6 +136,20 @@ export const deleteUserAction = action(async (id: string) => {
   const existingUser = await getUserById(id);
   if (!existingUser) {
     throw new NotFoundError('User does not exist');
+  }
+
+  const { hasReservations, isRoomPic } = await checkUserCanBeDeleted(id);
+
+  if (hasReservations) {
+    throw new Error(
+      'Cannot delete user with active reservations. Please remove reservations first.',
+    );
+  }
+
+  if (isRoomPic) {
+    throw new Error(
+      'Cannot delete user who is a person in charge of a room. Please reassign the room first.',
+    );
   }
 
   await deleteUser(id);

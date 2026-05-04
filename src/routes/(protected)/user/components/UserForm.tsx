@@ -29,9 +29,7 @@ export const UserSchema = v.object({
   ),
   name: v.pipe(v.string('Please enter a name'), v.nonEmpty('Please enter a name')),
   role: v.pipe(v.string('Please select a role'), v.nonEmpty('Please select a role')),
-  password: v.optional(
-    v.pipe(v.string(), v.minLength(6, 'Password must be at least 6 characters')),
-  ),
+  password: v.pipe(v.string(), v.minLength(6, 'Password must be at least 6 characters')),
   ext: v.optional(v.string()),
   division: v.optional(v.string()),
   department: v.optional(v.string()),

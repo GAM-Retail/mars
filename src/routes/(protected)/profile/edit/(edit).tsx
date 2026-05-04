@@ -44,14 +44,32 @@ const ProfileSchema = v.object({
   department: v.optional(v.string()),
 });
 
+type ProfileFormValues = v.InferInput<typeof ProfileSchema>;
+
 export default function EditProfile() {
   const navigate = useNavigate();
   const userResource = createAsync(() => getUser());
   const updateProfile = useAction(updateUserAction);
+  const form = createForm({
+    schema: ProfileSchema,
+    initialInput: {
+      nik: userResource()?.nik,
+      name: userResource()?.name,
+      email: userResource()?.email,
+      ext: userResource()?.ext || undefined,
+      division: userResource()?.division || undefined,
+      department: userResource()?.department || undefined,
+    },
+  });
 
-  const onSubmit = async (data: v.InferInput<typeof ProfileSchema>) => {
+  const onSubmit = async (data: ProfileFormValues) => {
     const userId = userResource()?.id;
-    if (!userId) return;
+    if (!userId) {
+      toast('Failed to update profile', {
+        description: 'User session not found. Please login again.',
+      });
+      return;
+    }
 
     try {
       const result = await updateProfile({
@@ -85,26 +103,8 @@ export default function EditProfile() {
           </A>
           <h2 class="text-xl font-semibold">Edit profile</h2>
         </span>
-        <Form
-          method="post"
-          of={createForm({
-            schema: ProfileSchema,
-            initialInput: {
-              nik: userResource()?.nik,
-              name: userResource()?.name,
-              email: userResource()?.email,
-              ext: userResource()?.ext || undefined,
-              division: userResource()?.division || undefined,
-              department: userResource()?.department || undefined,
-            },
-          })}
-          onSubmit={(data, e) => {
-            e?.preventDefault();
-            onSubmit(data);
-          }}
-          class="flex flex-col gap-4"
-        >
-          <Field of={createForm({ schema: ProfileSchema })} path={['nik']}>
+        <Form method="post" of={form} onSubmit={onSubmit} class="flex flex-col gap-4">
+          <Field of={form} path={['nik']}>
             {(field) => (
               <TextField
                 name={field.props.name}
@@ -119,7 +119,7 @@ export default function EditProfile() {
               </TextField>
             )}
           </Field>
-          <Field of={createForm({ schema: ProfileSchema })} path={['name']}>
+          <Field of={form} path={['name']}>
             {(field) => (
               <TextField
                 name={field.props.name}
@@ -134,7 +134,7 @@ export default function EditProfile() {
               </TextField>
             )}
           </Field>
-          <Field of={createForm({ schema: ProfileSchema })} path={['email']}>
+          <Field of={form} path={['email']}>
             {(field) => (
               <TextField
                 name={field.props.name}
@@ -149,7 +149,7 @@ export default function EditProfile() {
               </TextField>
             )}
           </Field>
-          <Field of={createForm({ schema: ProfileSchema })} path={['ext']}>
+          <Field of={form} path={['ext']}>
             {(field) => (
               <TextField
                 name={field.props.name}
@@ -163,7 +163,7 @@ export default function EditProfile() {
               </TextField>
             )}
           </Field>
-          <Field of={createForm({ schema: ProfileSchema })} path={['division']}>
+          <Field of={form} path={['division']}>
             {(field) => (
               <TextField
                 name={field.props.name}
@@ -177,7 +177,7 @@ export default function EditProfile() {
               </TextField>
             )}
           </Field>
-          <Field of={createForm({ schema: ProfileSchema })} path={['department']}>
+          <Field of={form} path={['department']}>
             {(field) => (
               <TextField
                 name={field.props.name}

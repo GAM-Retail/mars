@@ -1,5 +1,16 @@
 import { createAsync, RouteDefinition, useNavigate, A } from '@solidjs/router';
-import { Calendar, Cog, Shield } from 'lucide-solid';
+import { createSignal, Show } from 'solid-js';
+import {
+  Calendar,
+  Cog,
+  Shield,
+  User as UserIcon,
+  Mail,
+  Phone,
+  Building2,
+  MapPin,
+  Clock,
+} from 'lucide-solid';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +19,6 @@ import {
 } from '~/components/ui/dropdown-menu';
 import { getUser } from '~/server/controller/session.server';
 import { UserRole } from '~/types';
-import { Show, createSignal } from 'solid-js';
 import { ChangePasswordDialog } from './components/ChangePasswordDialog';
 
 export const route = {
@@ -77,41 +87,125 @@ export default function Profile() {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div class="space-y-4">
-            <div>
-              <p class="text-xs text-muted-foreground mb-1">NIK</p>
-              <p class="text-sm font-medium">{userResource()?.nik}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2 space-y-6">
+            <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
+              <div class="flex flex-col space-y-1.5 p-6 pb-4">
+                <h3 class="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
+                  <UserIcon class="h-5 w-5 text-muted-foreground" />
+                  Contact Information
+                </h3>
+              </div>
+              <div class="p-6 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2 text-muted-foreground">
+                    <Mail class="h-4 w-4" />
+                    <p class="text-xs">Email</p>
+                  </div>
+                  <p class="text-sm font-medium">{userResource()?.email}</p>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2 text-muted-foreground">
+                    <Phone class="h-4 w-4" />
+                    <p class="text-xs">Extension</p>
+                  </div>
+                  <p class="text-sm font-medium">{userResource()?.ext || '-'}</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p class="text-xs text-muted-foreground mb-1">Email</p>
-              <p class="text-sm">{userResource()?.email}</p>
+
+            <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
+              <div class="flex flex-col space-y-1.5 p-6 pb-4">
+                <h3 class="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
+                  <Building2 class="h-5 w-5 text-muted-foreground" />
+                  Organization
+                </h3>
+              </div>
+              <div class="p-6 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2 text-muted-foreground">
+                    <MapPin class="h-4 w-4" />
+                    <p class="text-xs">Division</p>
+                  </div>
+                  <p class="text-sm font-medium">{userResource()?.division || '-'}</p>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2 text-muted-foreground">
+                    <Building2 class="h-4 w-4" />
+                    <p class="text-xs">Department</p>
+                  </div>
+                  <p class="text-sm font-medium">{userResource()?.department || '-'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
+              <div class="flex flex-col space-y-1.5 p-6 pb-4">
+                <h3 class="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
+                  <Shield class="h-5 w-5 text-muted-foreground" />
+                  Role & Access
+                </h3>
+              </div>
+              <div class="p-6 pt-0">
+                <div class="space-y-2">
+                  <p class="text-xs text-muted-foreground">Role</p>
+                  <p class="text-sm">
+                    <span
+                      class={
+                        userResource()?.role === 'SUPERADMIN'
+                          ? 'inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary'
+                          : 'inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground'
+                      }
+                    >
+                      {userResource()?.role === 'SUPERADMIN' ? 'Superadmin' : 'Admin'}
+                    </span>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="space-y-4">
-            <div>
-              <p class="text-xs text-muted-foreground mb-1">Created At</p>
-              <p class="text-sm">
-                {userResource()?.createdAt.toLocaleString('id-ID', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-            </div>
-            <div>
-              <p class="text-xs text-muted-foreground mb-1">Updated At</p>
-              <p class="text-sm">
-                {userResource()?.updatedAt.toLocaleString('id-ID', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
+
+          <div class="space-y-6">
+            <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
+              <div class="flex flex-col space-y-1.5 p-6 pb-4">
+                <h3 class="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
+                  <Calendar class="h-5 w-5 text-muted-foreground" />
+                  System Info
+                </h3>
+              </div>
+              <div class="p-6 pt-0 space-y-4">
+                <div class="space-y-2">
+                  <p class="text-xs text-muted-foreground">NIK</p>
+                  <p class="text-sm font-medium">{userResource()?.nik}</p>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2 text-muted-foreground">
+                    <Clock class="h-4 w-4" />
+                    <p class="text-xs">Created</p>
+                  </div>
+                  <p class="text-sm">
+                    {userResource()?.createdAt.toLocaleString('id-ID', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs text-muted-foreground">Last Updated</p>
+                  <p class="text-sm">
+                    {userResource()?.updatedAt.toLocaleString('id-ID', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

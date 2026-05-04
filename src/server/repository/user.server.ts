@@ -117,3 +117,20 @@ export const updateUser = async (data: {
 export const deleteUser = async (id: string) => {
   return db.user.delete({ where: { id } });
 };
+
+export const checkUserCanBeDeleted = async (id: string) => {
+  const reservationCount = await db.roomReservation.count({
+    where: { reservedById: id },
+  });
+
+  const roomPicCount = await db.roomPersonInCharge.count({
+    where: { personInChargeId: id },
+  });
+
+  return {
+    hasReservations: reservationCount > 0,
+    isRoomPic: roomPicCount > 0,
+    reservationCount,
+    roomPicCount,
+  };
+};
