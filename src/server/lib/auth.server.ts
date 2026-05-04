@@ -66,10 +66,12 @@ export async function logout() {
 export function getSession() {
   const SESSION_SECRET = process.env.SESSION_SECRET;
   if (!SESSION_SECRET) throw new Error('SESSION_SECRET is not defined');
+  const COOKIE_SECURE = process.env.COOKIE_SECURE;
+  if (!COOKIE_SECURE) throw new Error('COOKIE_SECURE is not defined');
   return useSession({
     password: SESSION_SECRET,
     cookie: {
-      secure: false,
+      secure: COOKIE_SECURE === 'true',
       path: '/',
     },
   });
