@@ -44,7 +44,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - SHADOW_DATABASE_URL=${SHADOW_DATABASE_URL}
       - SESSION_SECRET=${SESSION_SECRET}
-      - NODE_ENV=${NODE_ENV}
+      - COOKIE_SECURE=${COOKIE_SECURE}
       - PORT=${PORT:-3000}
     depends_on:
       seeder:
