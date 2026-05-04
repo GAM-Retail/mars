@@ -33,7 +33,10 @@ export default function NewUser() {
         email: data.email,
         name: data.name,
         role: data.role as UserRole,
-        password: (data.password as string) || '',
+        password: data.password,
+        ext: data.ext,
+        division: data.division,
+        department: data.department,
       });
       toast('User has been created', {
         description: `${result.user.name} has been created successfully.`,
