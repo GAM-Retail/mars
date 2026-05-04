@@ -114,7 +114,10 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
                     </Breadcrumb>
                   </div>
                   <Show
-                    when={newButtonState() && currentPageRole().includes(user()?.role)}
+                    when={
+                      newButtonState()?.role.includes(user()?.role) &&
+                      currentPageRole().includes(user()?.role)
+                    }
                     fallback={<></>}
                   >
                     <Button size="sm" as={A} href={newButtonState().href}>
