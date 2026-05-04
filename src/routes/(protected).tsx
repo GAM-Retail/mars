@@ -37,7 +37,7 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
     } else if (location.pathname === '/') {
       navigate('/dashboard', { replace: true });
     }
-});
+  });
   const matches = useCurrentMatches();
   const title = createMemo(() => matches().at(matches()?.length - 1)?.route?.info?.title);
   const description = createMemo(
@@ -115,7 +115,7 @@ export default function Protected(props: Readonly<RouteSectionProps>) {
                   </div>
                   <Show
                     when={
-                      newButtonState()?.role.includes(user()?.role) &&
+                      newButtonState()?.role?.includes(user()?.role) &&
                       currentPageRole().includes(user()?.role)
                     }
                     fallback={<></>}
