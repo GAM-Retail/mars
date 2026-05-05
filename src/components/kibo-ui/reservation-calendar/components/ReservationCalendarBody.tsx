@@ -148,7 +148,7 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
       if (day) {
         result.push(
           <div class="relative flex flex-col gap-1 p-1 text-muted-foreground text-xs">
-            <span class="text-sm leading-none text-muted-foreground self-start px-1 py-[2px] rounded">
+            <span class="text-sm leading-none text-muted-foreground self-start px-1 py-0.5 rounded">
               {day}
             </span>
           </div>,
@@ -175,7 +175,7 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
         <div class="relative flex flex-col gap-1 border-t border-r p-1 text-xs">
           <span
             class={cn(
-              'text-sm leading-none text-muted-foreground self-start px-1 py-[2px] rounded',
+              'text-sm leading-none text-muted-foreground self-start px-1 py-0.5 rounded',
               isSameDay(date, new Date()) &&
                 'bg-primary text-primary-foreground font-semibold text-sm',
             )}
@@ -244,23 +244,14 @@ function MonthView(props: Readonly<{ reservations: Reservation[] }>): JSX.Elemen
   });
 
   return (
-    <div class="grid h-full grid-cols-7 grid-rows-[repeat(6,1fr)]">
+    <div class="grid min-h-full grid-cols-7 grid-rows-[repeat(6,1fr)]">
       <For each={prevDays()}>
         {(day) => (
           <div class="relative overflow-hidden border-t border-r bg-secondary/50">{day}</div>
         )}
       </For>
       <For each={currentDays()}>
-        {(day, index) => (
-          <div
-            class={cn(
-              'relative overflow-hidden border-t border-r',
-              index() % 7 === 6 && 'border-r-0',
-            )}
-          >
-            {day}
-          </div>
-        )}
+        {(day) => <div class={cn('relative overflow-hidden border-t border-r')}>{day}</div>}
       </For>
       <For each={nextDays()}>
         {(day) => (

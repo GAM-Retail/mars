@@ -24,7 +24,7 @@ export const getAllReservationsByPersonInCharge = async (userId: string, roomIds
     },
     include: {
       room: true,
-      reservedBy: { select: { id: true, name: true, email: true } },
+      reservedBy: true,
       organizer: true,
     },
     orderBy: { startTime: 'desc' },
@@ -42,6 +42,17 @@ export const getReservationById = async (id: string) => {
   });
 };
 
+export const getReservationsByRoomIds = async (roomIds: string[]) => {
+  return db.roomReservation.findMany({
+    where: { roomId: { in: roomIds } },
+    include: {
+      room: true,
+      reservedBy: true,
+      organizer: true,
+    },
+    orderBy: { startTime: 'desc' },
+  });
+};
 export const getReservationsByRoomId = async (roomId: string) => {
   return db.roomReservation.findMany({
     where: { roomId },

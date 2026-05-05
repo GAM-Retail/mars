@@ -27,6 +27,8 @@ import {
   deleteReservationAction,
 } from '~/server/controller/reservation.server';
 import { UserRole } from '~/types';
+import { useCurrentUser } from '~/hooks/useCurrentUser';
+import { cn } from '~/lib/utils';
 
 export const route = {
   info: {
@@ -41,11 +43,12 @@ export const route = {
       href: '/reservation/new',
       role: [UserRole.ADMIN],
     },
-    role: [UserRole.ADMIN],
+    role: [UserRole.ADMIN, UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 
 export default function ReservationDetail() {
+  const userContext = useCurrentUser();
   const params = useParams<{ id: string }>();
   const navigate = useNavigate();
   const deleteReservation = useAction(deleteReservationAction);
@@ -78,31 +81,40 @@ export default function ReservationDetail() {
                 <p class="text-sm text-muted-foreground">Reservation</p>
                 <h1 class="text-3xl font-semibold tracking-tight">{res.room.name}</h1>
               </div>
-              <div class="flex flex-col items-end justify-between">
-                <DropdownMenu placement="right">
-                  <DropdownMenuTrigger class="flex item-start" aria-label="Options">
-                    <Cog class="h-6 w-6" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem
-                      as={A}
-                      href={`/reservation/${params.id}/edit`}
-                      onSelect={() => navigate(`/reservation/${params.id}/edit`)}
-                    >
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      as={Button}
-                      variant="destructive"
-                      class="w-full justify-start hover:bg-destructive/90! hover:text-destructive-foreground!"
-                      size="sm"
-                      onSelect={() => setOpen(true)}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <div class="flex flex-wrap gap-6 text-sm text-muted-foreground">
+              <div
+                class={cn(
+                  'flex flex-col min-h-full items-end',
+                  userContext.currentUser?.role === UserRole.ADMIN
+                    ? 'justify-between'
+                    : 'justify-end',
+                )}
+              >
+                <Show when={userContext.currentUser?.role === UserRole.ADMIN} fallback={<></>}>
+                  <DropdownMenu placement="right">
+                    <DropdownMenuTrigger class="flex item-start" aria-label="Options">
+                      <Cog class="h-6 w-6" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        as={A}
+                        href={`/reservation/${params.id}/edit`}
+                        onSelect={() => navigate(`/reservation/${params.id}/edit`)}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        as={Button}
+                        variant="destructive"
+                        class="w-full justify-start hover:bg-destructive/90! hover:text-destructive-foreground!"
+                        size="sm"
+                        onSelect={() => setOpen(true)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </Show>
+                <div class="flex flex-wrap gap-6 text-sm self-end text-muted-foreground">
                   <div class="flex items-center gap-2">
                     <Calendar class="h-4 w-4" />
                     <span>

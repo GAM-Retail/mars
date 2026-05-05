@@ -9,7 +9,9 @@ import { Show, createSignal, createEffect } from 'solid-js';
 import RoomsFilter from '~/routes/(protected)/reservation/components/RoomsFilter';
 import { getRoomsByPersonInCharge } from '~/server/controller/room.server';
 
-const columns: ColumnDef<Awaited<ReturnType<typeof getAllReservationsByPersonInChargeQuery>>[number]>[] = [
+const columns: ColumnDef<
+  Awaited<ReturnType<typeof getAllReservationsByPersonInChargeQuery>>[number]
+>[] = [
   { accessorKey: 'id', header: 'ID' },
   {
     accessorKey: 'roomName',
@@ -75,7 +77,7 @@ export const route = {
     description: 'Manage room reservations',
     breadcrumb: { href: '/reservation', label: 'Reservations' },
     newButtonState: { label: 'New Reservation', href: '/reservation/new', role: [UserRole.ADMIN] },
-    role: [UserRole.ADMIN],
+    role: [UserRole.ADMIN, UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 

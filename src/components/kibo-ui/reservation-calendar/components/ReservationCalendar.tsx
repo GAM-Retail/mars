@@ -26,7 +26,7 @@ export function ReservationCalendar(props: Readonly<ReservationCalendarProps>): 
   return (
     <ReservationCalendarProvider locale={props.locale} startDay={props.startDay}>
       <div class={cn('flex h-full flex-col md:flex-row', props.class)}>
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-h-full min-w-0">
           <ReservationCalendarInner reservations={props.reservations} />
         </div>
         <ReservationDetailPanel reservations={props.reservations} />
