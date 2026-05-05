@@ -65,16 +65,11 @@ const items: SidebarItem[] = [
         icon: Presentation,
       },
     ],
-    role: ['ADMIN'],
+    role: ['ADMIN', 'SUPERADMIN'],
   },
   {
     groupName: 'Management',
     items: [
-      {
-        title: 'Dashboard',
-        url: '/dashboard',
-        icon: LayoutDashboard,
-      },
       {
         title: 'User Management',
         url: '/user',
