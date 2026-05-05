@@ -4,6 +4,7 @@ import { createEffect, createSignal, Show } from 'solid-js';
 import { getAllReservationsForCalendar } from '~/server/controller/reservation.server';
 import RoomsFilter from '~/routes/(protected)/reservation/components/RoomsFilter';
 import { ReservationCalendar } from '~/components/kibo-ui/reservation-calendar';
+import Loading from '~/components/Loading';
 
 export default function CalendarDashboard() {
   const rooms = createAsync(() => getRoomsByPersonInCharge());
@@ -37,8 +38,8 @@ export default function CalendarDashboard() {
           )}
         </Show>
       </div>
-      <Show when={filteredReservations()} fallback={<div class="p-4">Loading...</div>}>
-        {(data) => <ReservationCalendar reservations={data()} class="h-full w-full" />}
+      <Show when={filteredReservations()} fallback={<Loading />}>
+        {(data) => <ReservationCalendar reservations={data()} class=" min-h-[80vh] w-full" />}
       </Show>
     </div>
   );
