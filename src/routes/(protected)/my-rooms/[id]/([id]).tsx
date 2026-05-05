@@ -15,7 +15,7 @@ export const route = {
     title: 'Room Detail',
     description: 'Room details and reservations',
     breadcrumb: { href: '/my-rooms', label: 'My Rooms' },
-    role: [UserRole.ADMIN],
+    role: [UserRole.ADMIN, UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 
