@@ -5,6 +5,7 @@ import {
   useAction,
   useNavigate,
   useParams,
+  revalidate,
 } from '@solidjs/router';
 import { ArrowLeft } from 'lucide-solid';
 import { toast } from 'solid-sonner';
@@ -63,6 +64,7 @@ export default function EditReservation() {
         organizerDepartment: data.organizerDepartment,
         agenda: data.agenda,
       });
+      await revalidate('getAllReservationsForCalendar');
       toast('Reservation has been updated', {
         description: 'Reservation has been updated successfully.',
         action: {
