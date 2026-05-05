@@ -15,6 +15,7 @@ import { action, json, query } from '@solidjs/router';
 import { getAllFacility } from '~/server/controller/facility.server';
 import { validateSession, validateSessionWithRole } from '~/server/lib';
 import { ForbiddenError, NotFoundError } from '~/lib/error';
+import { getUserById } from '~/server/repository/user.server';
 
 export const addRoom = action(
   async (values: { name: string; location: string; capacity: number; description?: string }) => {
@@ -114,7 +115,15 @@ export const removeFacilityFromRoomAction = action(async (roomId: string, facili
 
 export const getRoomsByPersonInCharge = query(async () => {
   'use server';
-  const userId = await validateSessionWithRole('ADMIN');
+  const userId = await validateSession();
+
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  if (user.role === 'SUPERADMIN') {
+    return getAll();
+  }
+
   return getRoomsByPersonInChargeQuery(userId);
 }, 'getRoomsByPersonInCharge');
 
