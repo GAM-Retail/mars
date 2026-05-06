@@ -120,7 +120,7 @@ export const deleteUser = async (id: string) => {
 
 export const checkUserCanBeDeleted = async (id: string) => {
   const reservationCount = await db.roomReservation.count({
-    where: { reservedById: id },
+    where: { reservedById: id, deletedAt: null },
   });
 
   const roomPicCount = await db.roomPersonInCharge.count({
@@ -133,4 +133,10 @@ export const checkUserCanBeDeleted = async (id: string) => {
     reservationCount,
     roomPicCount,
   };
+};
+
+export const hardDeleteReservationsByUser = async (userId: string) => {
+  return db.roomReservation.deleteMany({
+    where: { reservedById: userId, deletedAt: { not: null } },
+  });
 };
