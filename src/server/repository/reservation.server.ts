@@ -32,7 +32,10 @@ export const getAllReservationsByPersonInCharge = async (
   }
 
   return db.roomReservation.findMany({
-    where,
+    where: {
+      roomId: { in: roomIds },
+      reservedById: userId,
+    },
     include: {
       room: true,
       reservedBy: true,
