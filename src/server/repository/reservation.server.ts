@@ -21,6 +21,7 @@ export const getAllReservationsByPersonInCharge = async (userId: string, roomIds
   return db.roomReservation.findMany({
     where: {
       roomId: { in: roomIds },
+      reservedById: userId,
     },
     include: {
       room: true,
