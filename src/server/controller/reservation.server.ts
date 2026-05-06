@@ -230,6 +230,7 @@ export const getReservationsByRoom = query(async (roomId: string) => {
     if (!isPic) {
       throw new Error('You are not the person in charge for this room');
     }
+  } else {
     await validateSessionWithRole('SUPERADMIN');
   }
   return await getReservationsByRoomId(roomId);
