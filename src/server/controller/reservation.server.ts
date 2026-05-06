@@ -2,10 +2,12 @@ import { action, json, query } from '@solidjs/router';
 import {
   checkOverlappingReservations,
   createReservation,
+  createReservationLog,
   deleteReservation,
   getAllReservations,
   getAllReservationsByPersonInCharge,
   getReservationById,
+  getReservationLogs,
   getReservationsByRoomId,
   getReservationsByRoomIds,
   updateReservation,
@@ -44,24 +46,31 @@ const reservationMapper = (reservation: Reservation) => ({
   reservedById: reservation.reservedById,
   reservedByName: reservation.reservedBy.name,
   agenda: reservation.agenda,
+  deletedAt: reservation.deletedAt,
 });
-export const getAllReservationsByPersonInChargeQuery = query(async (roomIds: string[]) => {
-  'use server';
-  const userId = await validateSession();
 
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
+export const getAllReservationsByPersonInChargeQuery = query(
+  async (roomIds: string[], includeDeleted?: boolean) => {
+    'use server';
+    const userId = await validateSession();
 
-  if (user.role === 'SUPERADMIN') {
-    const allReservations = await getReservationsByRoomIds(roomIds);
-    return allReservations.map(reservationMapper);
-  }
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
 
-  const validatedUserId = await validateSessionWithRole('ADMIN');
-  return await getAllReservationsByPersonInCharge(validatedUserId, roomIds).then((reservations) => {
-    return reservations.map(reservationMapper);
-  });
-}, 'getAllReservationsByPersonInChargeQuery');
+    if (user.role === 'SUPERADMIN') {
+      const allReservations = await getReservationsByRoomIds(roomIds, includeDeleted);
+      return allReservations.map(reservationMapper);
+    }
+
+    const validatedUserId = await validateSessionWithRole('ADMIN');
+    return await getAllReservationsByPersonInCharge(validatedUserId, roomIds, includeDeleted).then(
+      (reservations) => {
+        return reservations.map(reservationMapper);
+      },
+    );
+  },
+  'getAllReservationsByPersonInChargeQuery',
+);
 
 export const getReservationByIdController = query(async (id: string) => {
   'use server';
@@ -147,6 +156,20 @@ export const createReservationAction = action(
       agenda: values.agenda,
     });
 
+    await createReservationLog({
+      reservationId: reservation.id,
+      action: 'CREATE',
+      performedBy: userId,
+      performedByName: user.name,
+      changes: {
+        roomId: values.roomId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        agenda: values.agenda,
+        organizerNik: values.organizerNik,
+      },
+    });
+
     return { reservation };
   },
 );
@@ -220,6 +243,27 @@ export const updateReservationAction = action(
       agenda: values.agenda,
     });
 
+    await createReservationLog({
+      reservationId: values.id,
+      action: 'UPDATE',
+      performedBy: userId,
+      performedByName: user.name,
+      changes: {
+        before: {
+          roomId: existingReservation.roomId,
+          startTime: existingReservation.startTime.toISOString(),
+          endTime: existingReservation.endTime.toISOString(),
+          agenda: existingReservation.agenda,
+        },
+        after: {
+          roomId: values.roomId,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          agenda: values.agenda,
+        },
+      },
+    });
+
     return { reservation };
   },
 );
@@ -244,6 +288,19 @@ export const deleteReservationAction = action(async (id: string) => {
   }
 
   await deleteReservation(id);
+
+  await createReservationLog({
+    reservationId: id,
+    action: 'DELETE',
+    performedBy: userId,
+    performedByName: user.name,
+    changes: {
+      roomId: existingReservation.roomId,
+      startTime: existingReservation.startTime.toISOString(),
+      endTime: existingReservation.endTime.toISOString(),
+      agenda: existingReservation.agenda,
+    },
+  });
 
   return json({ success: true }, { revalidate: [] });
 });
@@ -271,3 +328,9 @@ export const getPublicReservations = query(async () => {
     agenda: 'Reserved',
   }));
 }, 'getPublicReservations');
+
+export const getReservationLogsController = query(async (reservationId: string) => {
+  'use server';
+  await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
+  return getReservationLogs(reservationId);
+}, 'getReservationLogs');
