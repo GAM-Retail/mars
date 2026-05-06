@@ -2,10 +2,12 @@ import { action, json, query } from '@solidjs/router';
 import {
   checkOverlappingReservations,
   createReservation,
+  createReservationLog,
   deleteReservation,
   getAllReservations,
   getAllReservationsByPersonInCharge,
   getReservationById,
+  getReservationLogs,
   getReservationsByRoomId,
   getReservationsByRoomIds,
   updateReservation,
@@ -44,24 +46,31 @@ const reservationMapper = (reservation: Reservation) => ({
   reservedById: reservation.reservedById,
   reservedByName: reservation.reservedBy.name,
   agenda: reservation.agenda,
+  deletedAt: reservation.deletedAt,
 });
-export const getAllReservationsByPersonInChargeQuery = query(async (roomIds: string[]) => {
-  'use server';
-  const userId = await validateSession();
 
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
+export const getAllReservationsByPersonInChargeQuery = query(
+  async (roomIds: string[], includeDeleted?: boolean) => {
+    'use server';
+    const userId = await validateSession();
 
-  if (user.role === 'SUPERADMIN') {
-    const allReservations = await getReservationsByRoomIds(roomIds);
-    return allReservations.map(reservationMapper);
-  }
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
 
-  const validatedUserId = await validateSessionWithRole('ADMIN');
-  return await getAllReservationsByPersonInCharge(validatedUserId, roomIds).then((reservations) => {
-    return reservations.map(reservationMapper);
-  });
-}, 'getAllReservationsByPersonInChargeQuery');
+    if (user.role === 'SUPERADMIN') {
+      const allReservations = await getReservationsByRoomIds(roomIds, includeDeleted);
+      return allReservations.map(reservationMapper);
+    }
+
+    const validatedUserId = await validateSessionWithRole('ADMIN');
+    return await getAllReservationsByPersonInCharge(validatedUserId, roomIds, includeDeleted).then(
+      (reservations) => {
+        return reservations.map(reservationMapper);
+      },
+    );
+  },
+  'getAllReservationsByPersonInChargeQuery',
+);
 
 export const getReservationByIdController = query(async (id: string) => {
   'use server';
@@ -105,11 +114,16 @@ export const createReservationAction = action(
     agenda?: string;
   }) => {
     'use server';
-    const userId = await validateSessionWithRole('ADMIN');
+    const userId = await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
 
-    const isPic = await validateRoomPersonInCharge(userId, values.roomId);
-    if (!isPic) {
-      throw new Error('You are not the person in charge for this room');
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
+
+    if (user.role !== 'SUPERADMIN') {
+      const isPic = await validateRoomPersonInCharge(userId, values.roomId);
+      if (!isPic) {
+        throw new Error('You are not the person in charge for this room');
+      }
     }
 
     const startTime = dateTimeBuilder(values.date, values.startTime);
@@ -142,6 +156,20 @@ export const createReservationAction = action(
       agenda: values.agenda,
     });
 
+    await createReservationLog({
+      reservationId: reservation.id,
+      action: 'CREATE',
+      performedBy: userId,
+      performedByName: user.name,
+      changes: {
+        roomId: values.roomId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        agenda: values.agenda,
+        organizerNik: values.organizerNik,
+      },
+    });
+
     return { reservation };
   },
 );
@@ -162,16 +190,21 @@ export const updateReservationAction = action(
     agenda?: string;
   }) => {
     'use server';
-    const userId = await validateSessionWithRole('ADMIN');
+    const userId = await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
+
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
 
     const existingReservation = await getReservationById(values.id);
     if (!existingReservation) {
       throw new NotFoundError('Reservation does not exist');
     }
 
-    const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
-    if (!isPic) {
-      throw new Error('You are not the person in charge for this room');
+    if (user.role !== 'SUPERADMIN') {
+      const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
+      if (!isPic) {
+        throw new Error('You are not the person in charge for this room');
+      }
     }
 
     const startTime = dateTimeBuilder(values.date, values.startTime);
@@ -203,10 +236,32 @@ export const updateReservationAction = action(
     const reservation = await updateReservation({
       id: values.id,
       roomId: values.roomId,
+      reservedById: userId,
       organizerId,
       startTime,
       endTime,
       agenda: values.agenda,
+    });
+
+    await createReservationLog({
+      reservationId: values.id,
+      action: 'UPDATE',
+      performedBy: userId,
+      performedByName: user.name,
+      changes: {
+        before: {
+          roomId: existingReservation.roomId,
+          startTime: existingReservation.startTime.toISOString(),
+          endTime: existingReservation.endTime.toISOString(),
+          agenda: existingReservation.agenda,
+        },
+        after: {
+          roomId: values.roomId,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          agenda: values.agenda,
+        },
+      },
     });
 
     return { reservation };
@@ -215,19 +270,37 @@ export const updateReservationAction = action(
 
 export const deleteReservationAction = action(async (id: string) => {
   'use server';
-  const userId = await validateSessionWithRole('ADMIN');
+  const userId = await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
+
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
 
   const existingReservation = await getReservationById(id);
   if (!existingReservation) {
     throw new NotFoundError('Reservation does not exist');
   }
 
-  const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
-  if (!isPic) {
-    throw new Error('You are not the person in charge for this room');
+  if (user.role !== 'SUPERADMIN') {
+    const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
+    if (!isPic) {
+      throw new Error('You are not the person in charge for this room');
+    }
   }
 
   await deleteReservation(id);
+
+  await createReservationLog({
+    reservationId: id,
+    action: 'DELETE',
+    performedBy: userId,
+    performedByName: user.name,
+    changes: {
+      roomId: existingReservation.roomId,
+      startTime: existingReservation.startTime.toISOString(),
+      endTime: existingReservation.endTime.toISOString(),
+      agenda: existingReservation.agenda,
+    },
+  });
 
   return json({ success: true }, { revalidate: [] });
 });
@@ -255,3 +328,9 @@ export const getPublicReservations = query(async () => {
     agenda: 'Reserved',
   }));
 }, 'getPublicReservations');
+
+export const getReservationLogsController = query(async (reservationId: string) => {
+  'use server';
+  await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
+  return getReservationLogs(reservationId);
+}, 'getReservationLogs');

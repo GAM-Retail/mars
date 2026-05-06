@@ -25,11 +25,13 @@ import {
 import { toast } from 'solid-sonner';
 import {
   getReservationByIdController,
+  getReservationLogsController,
   deleteReservationAction,
 } from '~/server/controller/reservation.server';
 import { UserRole } from '~/types';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { cn } from '~/lib/utils';
+import ActivityLog from '~/routes/(protected)/reservation/[id]/components/ActivityLog';
 
 export const route = {
   info: {
@@ -56,6 +58,7 @@ export default function ReservationDetail() {
   const [open, setOpen] = createSignal(false);
 
   const data = createAsync(() => getReservationByIdController(params.id));
+  const logs = createAsync(() => getReservationLogsController(params.id));
 
   const onDelete = async () => {
     try {
@@ -77,11 +80,32 @@ export default function ReservationDetail() {
       {(d) => {
         const res = d().reservation;
         return (
-          <div class="mt-10 px-4 flex flex-col gap-6">
+          <div class="mt-10 px-4 flex flex-col gap-6 pb-2">
             <div class="flex justify-between items-stretch border-b pb-4">
               <div>
-                <p class="text-sm text-muted-foreground">Reservation</p>
+                <div class="flex items-center gap-2 mb-1">
+                  <p class="text-sm text-muted-foreground">Reservation</p>
+                  <Show when={res.deletedAt}>
+                    <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-300">
+                      Deleted
+                    </span>
+                  </Show>
+                </div>
                 <h1 class="text-3xl font-semibold tracking-tight">{res.room.name}</h1>
+                <Show when={res.deletedAt}>
+                  {(deletedAt) => (
+                    <p class="text-sm text-muted-foreground mt-1">
+                      Deleted on{' '}
+                      {deletedAt().toLocaleString('id-ID', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  )}
+                </Show>
               </div>
               <div
                 class={cn(
@@ -91,31 +115,29 @@ export default function ReservationDetail() {
                     : 'justify-end',
                 )}
               >
-                <Show when={userContext.currentUser?.role === UserRole.ADMIN} fallback={<></>}>
-                  <DropdownMenu placement="right">
-                    <DropdownMenuTrigger class="flex item-start" aria-label="Options">
-                      <Cog class="h-6 w-6" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem
-                        as={A}
-                        href={`/reservation/${params.id}/edit`}
-                        onSelect={() => navigate(`/reservation/${params.id}/edit`)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        as={Button}
-                        variant="destructive"
-                        class="w-full justify-start hover:bg-destructive/90! hover:text-destructive-foreground!"
-                        size="sm"
-                        onSelect={() => setOpen(true)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </Show>
+                <DropdownMenu placement="right">
+                  <DropdownMenuTrigger class="flex item-start" aria-label="Options">
+                    <Cog class="h-6 w-6" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      as={A}
+                      href={`/reservation/${params.id}/edit`}
+                      onSelect={() => navigate(`/reservation/${params.id}/edit`)}
+                    >
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      as={Button}
+                      variant="destructive"
+                      class="w-full justify-start hover:bg-destructive/90! hover:text-destructive-foreground!"
+                      size="sm"
+                      onSelect={() => setOpen(true)}
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <div class="flex flex-wrap gap-6 text-sm self-end text-muted-foreground">
                   <div class="flex items-center gap-2">
                     <Calendar class="h-4 w-4" />
@@ -275,6 +297,7 @@ export default function ReservationDetail() {
               </div>
             </div>
 
+            <Show when={logs()}>{(data) => <ActivityLog logs={data()} />}</Show>
             <AlertDialog open={open()} onOpenChange={setOpen} modal>
               <AlertDialogContent>
                 <AlertDialogTitle>Delete Reservation</AlertDialogTitle>

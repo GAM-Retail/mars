@@ -4,6 +4,7 @@ import {
   checkUserCanBeDeleted,
   createUser,
   deleteUser,
+  hardDeleteReservationsByUser,
   getAllUsers as getAllUsersRepository,
   getUserById,
   updateUser,
@@ -152,6 +153,7 @@ export const deleteUserAction = action(async (id: string) => {
     );
   }
 
+  await hardDeleteReservationsByUser(id);
   await deleteUser(id);
 
   return json({ success: true }, { revalidate: [] });

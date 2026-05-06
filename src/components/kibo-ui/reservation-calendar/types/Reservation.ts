@@ -35,6 +35,7 @@ export type Reservation = {
   startTime: Date;
   endTime: Date;
   agenda?: string | null;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
