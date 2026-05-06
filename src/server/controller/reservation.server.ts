@@ -181,6 +181,16 @@ export const updateReservationAction = action(
       throw new Error('End time must be after start time');
     }
 
+    const overlapping = await checkOverlappingReservations(
+      values.roomId,
+      startTime,
+      endTime,
+      values.id,
+    );
+    if (overlapping) {
+      throw new Error('This time slot conflicts with an existing reservation');
+    }
+
     const organizerId = await createOrUpdateOrganizer({
       nik: values.organizerNik,
       name: values.organizerName,
