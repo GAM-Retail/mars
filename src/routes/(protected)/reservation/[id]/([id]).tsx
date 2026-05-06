@@ -91,31 +91,29 @@ export default function ReservationDetail() {
                     : 'justify-end',
                 )}
               >
-                <Show when={userContext.currentUser?.role === UserRole.ADMIN} fallback={<></>}>
-                  <DropdownMenu placement="right">
-                    <DropdownMenuTrigger class="flex item-start" aria-label="Options">
-                      <Cog class="h-6 w-6" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem
-                        as={A}
-                        href={`/reservation/${params.id}/edit`}
-                        onSelect={() => navigate(`/reservation/${params.id}/edit`)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        as={Button}
-                        variant="destructive"
-                        class="w-full justify-start hover:bg-destructive/90! hover:text-destructive-foreground!"
-                        size="sm"
-                        onSelect={() => setOpen(true)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </Show>
+                <DropdownMenu placement="right">
+                  <DropdownMenuTrigger class="flex item-start" aria-label="Options">
+                    <Cog class="h-6 w-6" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      as={A}
+                      href={`/reservation/${params.id}/edit`}
+                      onSelect={() => navigate(`/reservation/${params.id}/edit`)}
+                    >
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      as={Button}
+                      variant="destructive"
+                      class="w-full justify-start hover:bg-destructive/90! hover:text-destructive-foreground!"
+                      size="sm"
+                      onSelect={() => setOpen(true)}
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <div class="flex flex-wrap gap-6 text-sm self-end text-muted-foreground">
                   <div class="flex items-center gap-2">
                     <Calendar class="h-4 w-4" />
