@@ -1,4 +1,11 @@
-import { A, RouteDefinition, useAction, useNavigate, createAsync } from '@solidjs/router';
+import {
+  A,
+  RouteDefinition,
+  useAction,
+  useNavigate,
+  createAsync,
+  revalidate,
+} from '@solidjs/router';
 import { ArrowLeft } from 'lucide-solid';
 import { toast } from 'solid-sonner';
 import { createReservationAction } from '~/server/controller/reservation.server';
@@ -48,6 +55,7 @@ export default function NewReservation() {
         organizerDepartment: data.organizerDepartment,
         agenda: data.agenda,
       });
+      await revalidate('getAllReservationsForCalendar');
       toast('Reservation has been created', {
         description: 'Room reservation has been created successfully.',
         action: {

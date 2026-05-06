@@ -1,13 +1,14 @@
 import {
+  A,
   createAsync,
   RouteDefinition,
-  useParams,
-  A,
   useAction,
   useNavigate,
+  useParams,
+  revalidate,
 } from '@solidjs/router';
-import { Calendar, Cog, MapPin, User as UserIcon, Mail, Phone, Building2 } from 'lucide-solid';
 import { Show, createSignal } from 'solid-js';
+import { Calendar, Cog, MapPin, User as UserIcon, Mail, Phone, Building2 } from 'lucide-solid';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +60,7 @@ export default function ReservationDetail() {
   const onDelete = async () => {
     try {
       await deleteReservation(params.id);
+      await revalidate('getAllReservationsForCalendar');
       toast('Reservation has been deleted', {
         description: 'Reservation has been deleted successfully.',
       });
