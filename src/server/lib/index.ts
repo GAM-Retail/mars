@@ -12,7 +12,9 @@ export const validateSession = async (): Promise<string> => {
   return userId;
 };
 
-export const validateSessionWithRole = async (requiredRole: UserRole): Promise<string> => {
+export const validateSessionWithRole = async (
+  requiredRole: UserRole | UserRole[],
+): Promise<string> => {
   const session = await getSession();
   const userId = session.data.userId;
 
@@ -21,7 +23,8 @@ export const validateSessionWithRole = async (requiredRole: UserRole): Promise<s
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) throw new ForbiddenError('User not found');
 
-  if (user.role !== requiredRole) {
+  const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+  if (!roles.includes(user.role)) {
     throw new ForbiddenError();
   }
 

@@ -21,6 +21,7 @@ export const getAllReservationsByPersonInCharge = async (userId: string, roomIds
   return db.roomReservation.findMany({
     where: {
       roomId: { in: roomIds },
+      reservedById: userId,
     },
     include: {
       room: true,
@@ -118,6 +119,7 @@ export const createReservation = async (data: {
 export const updateReservation = async (data: {
   id: string;
   roomId: string;
+  reservedById: string;
   organizerId: string;
   startTime: Date;
   endTime: Date;
@@ -126,6 +128,7 @@ export const updateReservation = async (data: {
   return db.roomReservation.update({
     data: {
       roomId: data.roomId,
+      reservedById: data.reservedById,
       organizerId: data.organizerId,
       startTime: data.startTime,
       endTime: data.endTime,

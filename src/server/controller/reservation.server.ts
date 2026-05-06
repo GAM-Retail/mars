@@ -105,11 +105,16 @@ export const createReservationAction = action(
     agenda?: string;
   }) => {
     'use server';
-    const userId = await validateSessionWithRole('ADMIN');
+    const userId = await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
 
-    const isPic = await validateRoomPersonInCharge(userId, values.roomId);
-    if (!isPic) {
-      throw new Error('You are not the person in charge for this room');
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
+
+    if (user.role !== 'SUPERADMIN') {
+      const isPic = await validateRoomPersonInCharge(userId, values.roomId);
+      if (!isPic) {
+        throw new Error('You are not the person in charge for this room');
+      }
     }
 
     const startTime = dateTimeBuilder(values.date, values.startTime);
@@ -162,16 +167,21 @@ export const updateReservationAction = action(
     agenda?: string;
   }) => {
     'use server';
-    const userId = await validateSessionWithRole('ADMIN');
+    const userId = await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
+
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
 
     const existingReservation = await getReservationById(values.id);
     if (!existingReservation) {
       throw new NotFoundError('Reservation does not exist');
     }
 
-    const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
-    if (!isPic) {
-      throw new Error('You are not the person in charge for this room');
+    if (user.role !== 'SUPERADMIN') {
+      const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
+      if (!isPic) {
+        throw new Error('You are not the person in charge for this room');
+      }
     }
 
     const startTime = dateTimeBuilder(values.date, values.startTime);
@@ -203,6 +213,7 @@ export const updateReservationAction = action(
     const reservation = await updateReservation({
       id: values.id,
       roomId: values.roomId,
+      reservedById: userId,
       organizerId,
       startTime,
       endTime,
@@ -215,16 +226,21 @@ export const updateReservationAction = action(
 
 export const deleteReservationAction = action(async (id: string) => {
   'use server';
-  const userId = await validateSessionWithRole('ADMIN');
+  const userId = await validateSessionWithRole(['ADMIN', 'SUPERADMIN']);
+
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
 
   const existingReservation = await getReservationById(id);
   if (!existingReservation) {
     throw new NotFoundError('Reservation does not exist');
   }
 
-  const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
-  if (!isPic) {
-    throw new Error('You are not the person in charge for this room');
+  if (user.role !== 'SUPERADMIN') {
+    const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
+    if (!isPic) {
+      throw new Error('You are not the person in charge for this room');
+    }
   }
 
   await deleteReservation(id);

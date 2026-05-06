@@ -33,9 +33,9 @@ export const route = {
     newButtonState: {
       label: 'New Reservation',
       href: '/reservation/new',
-      role: [UserRole.ADMIN],
+      role: [UserRole.ADMIN, UserRole.SUPERADMIN],
     },
-    role: [UserRole.ADMIN],
+    role: [UserRole.ADMIN, UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
 

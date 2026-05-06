@@ -76,7 +76,7 @@ export const route = {
     title: 'Reservations',
     description: 'Manage room reservations',
     breadcrumb: { href: '/reservation', label: 'Reservations' },
-    newButtonState: { label: 'New Reservation', href: '/reservation/new', role: [UserRole.ADMIN] },
+    newButtonState: { label: 'New Reservation', href: '/reservation/new', role: [UserRole.ADMIN, UserRole.SUPERADMIN] },
     role: [UserRole.ADMIN, UserRole.SUPERADMIN],
   },
 } satisfies RouteDefinition;
