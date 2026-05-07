@@ -60,6 +60,11 @@ export default function ReservationDetail() {
   const data = createAsync(() => getReservationByIdController(params.id));
   const logs = createAsync(() => getReservationLogsController(params.id));
 
+  const canModify = () => {
+    const reservation = data()?.reservation;
+    return reservation && !reservation.deletedAt && reservation.endTime > new Date();
+  };
+
   const onDelete = async () => {
     try {
       await deleteReservation(params.id);
@@ -109,7 +114,7 @@ export default function ReservationDetail() {
               </div>
               <div
                 class={cn(
-                  'flex flex-col min-h-full items-end',
+                  'flex flex-col gap-2 min-h-full items-end',
                   userContext.currentUser?.role === UserRole.ADMIN
                     ? 'justify-between'
                     : 'justify-end',
@@ -124,6 +129,7 @@ export default function ReservationDetail() {
                       as={A}
                       href={`/reservation/${params.id}/edit`}
                       onSelect={() => navigate(`/reservation/${params.id}/edit`)}
+                      disabled={!canModify()}
                     >
                       Edit
                     </DropdownMenuItem>
@@ -133,6 +139,7 @@ export default function ReservationDetail() {
                       class="w-full justify-start hover:bg-destructive/90! hover:text-destructive-foreground!"
                       size="sm"
                       onSelect={() => setOpen(true)}
+                      disabled={!canModify()}
                     >
                       Delete
                     </DropdownMenuItem>

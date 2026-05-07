@@ -200,6 +200,14 @@ export const updateReservationAction = action(
       throw new NotFoundError('Reservation does not exist');
     }
 
+    if (existingReservation.deletedAt) {
+      throw new Error('Cannot edit deleted reservations');
+    }
+
+    if (existingReservation.endTime < new Date()) {
+      throw new Error('Cannot edit past reservations');
+    }
+
     if (user.role !== 'SUPERADMIN') {
       const isPic = await validateRoomPersonInCharge(userId, existingReservation.roomId);
       if (!isPic) {
@@ -278,6 +286,14 @@ export const deleteReservationAction = action(async (id: string) => {
   const existingReservation = await getReservationById(id);
   if (!existingReservation) {
     throw new NotFoundError('Reservation does not exist');
+  }
+
+  if (existingReservation.deletedAt) {
+    throw new Error('Reservation is already deleted');
+  }
+
+  if (existingReservation.endTime < new Date()) {
+    throw new Error('Cannot delete past reservations');
   }
 
   if (user.role !== 'SUPERADMIN') {
