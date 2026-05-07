@@ -108,7 +108,7 @@ export function AppSidebar() {
             <img src="/gramedia.webp" alt="Gramedia Logo" class="h-10 w-10" />
             <span>
               <p class="text-lg font-semibold">MARS</p>
-              <p class="text-xs">V1.0</p>
+              <p class="text-xs">V1.1</p>
             </span>
           </span>
           <ModeToggle />
