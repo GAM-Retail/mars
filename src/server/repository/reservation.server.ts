@@ -23,18 +23,11 @@ export const getAllReservationsByPersonInCharge = async (
     return [];
   }
 
-  const where: any = {
-    roomId: { in: roomIds },
-  };
-
-  if (!includeDeleted) {
-    where.deletedAt = null;
-  }
-
   return db.roomReservation.findMany({
     where: {
       roomId: { in: roomIds },
       reservedById: userId,
+      ...(includeDeleted ? {} : { deletedAt: null }),
     },
     include: {
       room: true,
