@@ -18,6 +18,7 @@ import { createOrUpdateOrganizer } from '~/server/controller/organizer.server';
 import { validateRoomPersonInCharge } from '~/server/controller/room.server';
 import { Reservation } from '~/components/kibo-ui/reservation-calendar';
 import { getUserById } from '~/server/repository/user.server';
+import { sendReservationNotification } from '~/server/lib/notification.server';
 
 export const getAllReservationsForCalendar = query(async () => {
   'use server';
@@ -156,7 +157,7 @@ export const createReservationAction = action(
       agenda: values.agenda,
     });
 
-    await createReservationLog({
+    const reservationLog = await createReservationLog({
       reservationId: reservation.id,
       action: 'CREATE',
       performedBy: userId,
@@ -165,9 +166,17 @@ export const createReservationAction = action(
         roomId: values.roomId,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        agenda: values.agenda,
+        agenda: values?.agenda || '',
         organizerNik: values.organizerNik,
       },
+    });
+
+    // intentionally not await this
+    sendReservationNotification({
+      reservationId: reservation.id,
+      reservationLogId: reservationLog.id,
+      status: 'Created',
+      currentUser: { id: user.id, name: user.name, ext: user.ext },
     });
 
     return { reservation };
@@ -251,7 +260,7 @@ export const updateReservationAction = action(
       agenda: values.agenda,
     });
 
-    await createReservationLog({
+    const reservationLog = await createReservationLog({
       reservationId: values.id,
       action: 'UPDATE',
       performedBy: userId,
@@ -270,6 +279,13 @@ export const updateReservationAction = action(
           agenda: values.agenda,
         },
       },
+    });
+
+    sendReservationNotification({
+      reservationId: values.id,
+      reservationLogId: reservationLog.id,
+      status: 'Rescheduled',
+      currentUser: { id: user.id, name: user.name, ext: user.ext },
     });
 
     return { reservation };
@@ -305,7 +321,7 @@ export const deleteReservationAction = action(async (id: string) => {
 
   await deleteReservation(id);
 
-  await createReservationLog({
+  const reservationLog = await createReservationLog({
     reservationId: id,
     action: 'DELETE',
     performedBy: userId,
@@ -314,8 +330,16 @@ export const deleteReservationAction = action(async (id: string) => {
       roomId: existingReservation.roomId,
       startTime: existingReservation.startTime.toISOString(),
       endTime: existingReservation.endTime.toISOString(),
-      agenda: existingReservation.agenda,
+      agenda: existingReservation?.agenda || '-',
     },
+  });
+
+  // intentionally not await this
+  sendReservationNotification({
+    reservationId: id,
+    reservationLogId: reservationLog.id,
+    status: 'Cancelled',
+    currentUser: { id: user.id, name: user.name, ext: user.ext },
   });
 
   return json({ success: true }, { revalidate: [] });

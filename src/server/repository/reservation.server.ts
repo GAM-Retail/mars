@@ -1,4 +1,5 @@
 import db from '~/lib/db';
+import { NotificationStatus, ReservationAction } from '~/generated/prisma/enums';
 
 export const getAllReservations = async (includeDeleted?: boolean) => {
   return db.roomReservation.findMany({
@@ -170,10 +171,10 @@ export const getReservationLogs = async (reservationId: string) => {
 
 export const createReservationLog = async (data: {
   reservationId: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  action: ReservationAction;
   performedBy: string;
   performedByName?: string;
-  changes?: Record<string, any>;
+  changes?: Record<string, string | object>;
 }) => {
   return db.roomReservationLog.create({
     data: {
@@ -182,6 +183,26 @@ export const createReservationLog = async (data: {
       performedBy: data.performedBy,
       performedByName: data.performedByName,
       changes: data.changes,
+    },
+  });
+};
+
+export const createNotificationLog = async (data: {
+  reservationId: string;
+  reservationLogId?: string;
+  phone: string;
+  status: NotificationStatus;
+  error?: string;
+  message?: string;
+}) => {
+  return db.roomReservationNotificationLog.create({
+    data: {
+      reservationId: data.reservationId,
+      reservationLogId: data.reservationLogId,
+      phone: data.phone,
+      status: data.status,
+      error: data.error,
+      message: data.message,
     },
   });
 };

@@ -4,6 +4,7 @@ import { Calendar, Clock, LoaderCircle } from 'lucide-solid';
 import { Show, createEffect, on } from 'solid-js';
 import {
   TextField,
+  TextFieldDescription,
   TextFieldErrorMessage,
   TextFieldInput,
   TextFieldLabel,
@@ -38,6 +39,9 @@ export const ReservationSchema = v.object({
   ),
   organizerPhone: v.pipe(
     v.string('Please enter organizer phone'),
+    v.startsWith('08', 'Phone number must start with 08'),
+    v.minLength(10, 'Phone number must be at least 10 digits'),
+    v.maxLength(13, 'Phone number must be at most 13 digits'),
     v.nonEmpty('Please enter organizer phone'),
   ),
   organizerDivision: v.optional(v.string()),
@@ -151,7 +155,10 @@ export default function ReservationForm(props: Readonly<ReservationFormProps>) {
             required
           >
             <TextFieldLabel>Phone</TextFieldLabel>
-            <TextFieldInput placeholder="e.g. +62812345678" />
+            <TextFieldInput placeholder="e.g. 081234567890" />
+            <TextFieldDescription>
+              This phone number will be used for notifications and contact purposes.
+            </TextFieldDescription>
             <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
           </TextField>
         )}
@@ -339,8 +346,8 @@ export default function ReservationForm(props: Readonly<ReservationFormProps>) {
         )}
       </Field>
 
-      <Button type="submit" class="mt-2">
-        Submit Reservation
+      <Button type="submit" class="mt-2" disabled={reservationForm.isSubmitting}>
+        {reservationForm.isSubmitting ? 'Submitting...' : 'Submit Reservation'}
       </Button>
     </Form>
   );
