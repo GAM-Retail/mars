@@ -118,14 +118,41 @@ model RoomReservation {
   @@map("tx_room_reservations")
 }
 
+enum ReservationAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
 model RoomReservationLog {
-  id              String    @id @default(uuid())
-  reservationId   String    @map("reservation_id")
-  action          String    // "CREATE", "UPDATE", "DELETE"
-  performedBy     String    @map("performed_by")
-  performedByName String?   @map("performed_by_name")
-  changes         Json?
-  createdAt       DateTime  @default(now()) @map("created_at")
+  id                              String                           @id @default(uuid())
+  reservationId                   String                           @map("reservation_id")
+  action                          ReservationAction
+  performedBy                     String                           @map("performed_by")
+  performedByName                 String?                          @map("performed_by_name")
+  changes                         Json?
+  createdAt                       DateTime                         @default(now()) @map("created_at")
+  roomReservationNotificationLogs RoomReservationNotificationLog[]
 
   @@map("tx_room_reservation_logs")
+}
+
+enum NotificationStatus {
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+model RoomReservationNotificationLog {
+  id               String              @id @default(uuid())
+  reservationId    String              @map("reservation_id")
+  reservationLogId String?
+  reservationLog   RoomReservationLog? @relation(fields: [reservationLogId], references: [id], onDelete: SetNull)
+  phone            String
+  status           NotificationStatus
+  error            String?
+  message          String?
+  sentAt           DateTime            @default(now()) @map("sent_at")
+
+  @@map("tx_room_reservation_notification_logs")
 }
