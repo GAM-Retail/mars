@@ -57,7 +57,7 @@ export function buildReservationMessage(data: MessageData): string {
 
   message += `\nIf you would like to reschedule or cancel this booking, please contact the Secretariat directly.\n`;
   message += `You can view your booking here:\n`;
-  message += `${process.env.APP_URL || 'http://localhost:3000'}\n`;
+  message += `${process.env.APP_URL || 'http://localhost:3000'} (This website is only accessible from the internal network.)\n`;
   message += `\nRegards,\n`;
   message += `Meeting Area Reservation System`;
 
