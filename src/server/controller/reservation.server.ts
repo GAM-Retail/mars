@@ -32,7 +32,7 @@ export const getAllReservationsForCalendar = query(async () => {
   }
 
   await validateSessionWithRole('ADMIN');
-  return await getAllReservations();
+  return await getAllReservationsByPersonInCharge(user.id);
 }, 'getAllReservationsForCalendar');
 
 const reservationMapper = (reservation: Reservation) => ({
