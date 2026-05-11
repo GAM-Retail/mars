@@ -1,41 +1,13 @@
-export type ReservationRoom = {
-  id: string;
-  name: string;
-  location: string;
-  capacity: number;
-};
+import type { Organizer, Room, RoomReservation, User } from '~/generated/prisma/client';
 
-export type ReservationUser = {
-  id: string;
-  name: string;
-  nik: string;
-  email: string;
-  department?: string | null;
-  division?: string | null;
-};
+export type ReservationRoom = Room;
 
-export type ReservationOrganizer = {
-  id: string;
-  nik: string;
-  name: string;
-  email: string;
-  phone: string;
-  department?: string | null;
-  division?: string | null;
-};
+export type ReservationUser = Omit<User, 'password'>;
 
-export type Reservation = {
-  id: string;
-  roomId: string;
+export type ReservationOrganizer = Organizer;
+
+export type Reservation = RoomReservation & {
   room: ReservationRoom;
-  reservedById: string;
   reservedBy: ReservationUser;
-  organizerId: string;
   organizer: ReservationOrganizer;
-  startTime: Date;
-  endTime: Date;
-  agenda?: string | null;
-  deletedAt?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
 };
