@@ -7,7 +7,9 @@ export const getAllReservations = async (includeDeleted?: boolean) => {
     include: {
       room: true,
       reservedBy: {
-        select: { id: true, name: true, email: true, nik: true, department: true, division: true },
+        omit: {
+          password: true,
+        },
       },
       organizer: true,
     },
