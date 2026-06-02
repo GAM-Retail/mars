@@ -29,6 +29,10 @@ jobs:
           
           # Optional: Ping the server once to verify the tunnel is routing properly
           ping -c 1 ${{ secrets.HOST }}
+      - name: Test GitHub access
+        run: |
+          getent hosts github.com
+          curl -I https://github.com
       - name: Deploy to PROD server via SSH
         uses: appleboy/ssh-action@v1
         env:
