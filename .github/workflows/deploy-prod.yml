@@ -29,7 +29,7 @@ jobs:
           
           # Optional: Ping the server once to verify the tunnel is routing properly
           ping -c 1 ${{ secrets.HOST }}
-      - name: Deploy to DEV server via SSH
+      - name: Deploy to PROD server via SSH
         uses: appleboy/ssh-action@v1
         env:
           DATABASE_URL: ${{ vars.DATABASE_URL }}
@@ -84,7 +84,7 @@ jobs:
             docker compose --env-file .env build --no-cache
             docker compose --env-file .env up -d --force-recreate
             docker image prune -f
-            echo "Deployed latest master to DEV server successfully"
+            echo "Deployed latest master to PROD server successfully"
       - name: Disconnect VPN
         if: always()
         run: sudo wg-quick down wg0
