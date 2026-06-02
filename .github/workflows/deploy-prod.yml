@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Test GitHub access before VPN
+        run: |
+          getent hosts github.com
+          curl -I https://github.com
       - name: Install WireGuard
         run: sudo apt-get update && sudo apt-get install -y wireguard resolvconf
 
@@ -29,7 +33,7 @@ jobs:
           
           # Optional: Ping the server once to verify the tunnel is routing properly
           ping -c 1 ${{ secrets.HOST }}
-      - name: Test GitHub access
+      - name: Test GitHub access after VPN
         run: |
           getent hosts github.com
           curl -I https://github.com
