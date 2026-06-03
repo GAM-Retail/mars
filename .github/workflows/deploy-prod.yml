@@ -2,11 +2,6 @@ name: Deploy to Production
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'v1.0.0'
-        required: true
-        type: string
 
 jobs:
   deploy:
@@ -49,7 +44,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          envs: DATABASE_URL, SHADOW_DATABASE_URL, SESSION_SECRET, INITIAL_USER_PASSWORD, PORT, COOKIE_SECURE
+          envs: DATABASE_URL, SHADOW_DATABASE_URL, SESSION_SECRET, INITIAL_USER_PASSWORD, PORT, COOKIE_SECURE,
+            NOTIFICATION_API_URL, NOTIFICATION_TOKEN_API_URL, NOTIFICATION_TOKEN_NAME, NOTIFICATION_TOKEN_EMAIL,
+            NOTIFICATION_TOKEN_APPSNAME, APP_URL
           script: |
             set -e 
             mkdir -p /home/${{ secrets.USERNAME }}/app/mars
