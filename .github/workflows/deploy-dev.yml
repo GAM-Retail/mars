@@ -40,7 +40,7 @@ jobs:
           NOTIFICATION_TOKEN_EMAIL: ${{ vars.NOTIFICATION_TOKEN_EMAIL }}
           NOTIFICATION_TOKEN_APPSNAME: ${{ vars.NOTIFICATION_TOKEN_APPSNAME }}
           APP_URL: ${{ vars.APP_URL }}
-          COOKIE_SECURE: false
+          COOKIE_SECURE: ${{ vars.COOKIE_SECURE }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
