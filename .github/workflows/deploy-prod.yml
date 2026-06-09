@@ -49,6 +49,8 @@ jobs:
             NOTIFICATION_TOKEN_APPSNAME, APP_URL
           script: |
             set -e 
+            sudo -u purplegit git --git-dir=/opt/git/mars.git fetch origin main
+            sudo -u purplegit git --git-dir=/opt/git/mars.git merge origin main
             mkdir -p /home/${{ secrets.USERNAME }}/app/mars
             cd /home/${{ secrets.USERNAME }}/app/mars
             # State-Aware Git Sync
