@@ -26,11 +26,9 @@ jobs:
 
       - name: Connect to Corporate VPN
         run: |
-          WG_CONF=$(mktemp /tmp/wg0.conf.XXXXXX)
-          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee "$WG_CONF" > /dev/null
-          sudo chmod 600 "$WG_CONF"
-          sudo wg-quick up "$WG_CONF"
-          rm -f "$WG_CONF"
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
+          sudo chmod 600 /etc/wireguard/wg0.conf
+          sudo wg-quick up wg0
           sleep 3
           nc -zv -w 5 ${{ secrets.HOST }} ${{ secrets.SSH_PORT }}
 
