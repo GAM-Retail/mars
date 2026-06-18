@@ -141,42 +141,67 @@ DATABASE_URL=mysql://mars_user:password@host.docker.internal:3306/mars_db
 
 ## CI/CD (GitHub Actions)
 
-The project includes GitHub Actions workflows for automated deployment:
+The project includes GitHub Actions workflows that deploy via Docker's native SSH transport. Code is checked out on the runner and sent to the remote Docker daemon — no source code stored on the server.
 
-### Development Deployment
+### Development Deployment (`deploy-dev.yml`)
 
 - **Trigger**: Push to `master` branch
-- **Action**: Builds Docker on DEV server, deploys via SSH
-- **Required secrets**:
-  - `DEV_HOST` - DEV server IP/hostname
-  - `DEV_USERNAME` - SSH username
-  - `DEV_SSH_KEY` - Private SSH key
-  - `DEV_SSH_PORT` - SSH port (default: 22)
+- **Concurrency**: Stale runs are cancelled automatically
+- **Flow**:
+  1. Checkout code (`actions/checkout`)
+  2. Connect to corporate network (WireGuard VPN)
+  3. Setup SSH key for remote Docker access
+  4. Build and deploy via `docker compose up -d --build` over SSH
+  5. Prune old Docker images (keeps last 24h)
+  6. Cleanup sensitive files and disconnect VPN
 
-### Production Deployment
+### Production Deployment (`deploy-prod.yml`)
 
-- **Trigger**: Manual workflow dispatch with version tag (e.g., `v1.0.0`)
-- **Action**: Builds Docker on PROD server, deploys via SSH
-- **Required secrets**:
-  - `PROD_HOST` - PROD server IP/hostname
-  - `PROD_USERNAME` - SSH username
-  - `PROD_SSH_KEY` - Private SSH key
-  - `PROD_SSH_PORT` - SSH port (default: 22)
+- **Trigger**: Manual workflow dispatch from GitHub UI
+- **Flow**: Same as development, but runs with `production` environment protection rules
+- **Optional input**: `version` tag (e.g., `v1.2.3`)
 
-### Setting Up GitHub Secrets
+### Required Secrets & Variables
 
-1. Go to your repository settings
-2. Navigate to Secrets and variables > Actions
-3. Add the required secrets
+Configure these in **Settings → Secrets and variables → Actions**:
+
+**Secrets** (encrypted):
+
+| Name | Description |
+|------|-------------|
+| `WIREGUARD_CONFIG` | WireGuard client config file content |
+| `HOST` | Server IP/hostname |
+| `USERNAME` | SSH username |
+| `SSH_KEY` | Private SSH key (authentication) |
+| `SSH_PORT` | SSH port (default: 22) |
+
+**Variables** (environment-specific, per GitHub Environment):
+
+| Name | Description |
+|------|-------------|
+| `DATABASE_URL` | MySQL connection string |
+| `SHADOW_DATABASE_URL` | Prisma shadow database URL |
+| `SESSION_SECRET` | Session encryption key |
+| `INITIAL_USER_PASSWORD` | Default admin password |
+| `PORT` | Application port (default: 3000) |
+| `COOKIE_SECURE` | Secure cookie flag |
+| `NOTIFICATION_API_URL` | Notification service URL |
+| `NOTIFICATION_TOKEN_API_URL` | Notification token endpoint |
+| `NOTIFICATION_TOKEN_NAME` | Notification token name |
+| `NOTIFICATION_TOKEN_EMAIL` | Notification email |
+| `NOTIFICATION_TOKEN_APPSNAME` | Notification app name |
+| `APP_URL` | Public application URL |
+
+> **Note**: `HOST`, `USERNAME`, `SSH_KEY`, `SSH_PORT` can be shared across environments or scoped per environment. If your DEV and PROD servers differ, set these as environment-scoped secrets.
 
 ### VM Setup Requirements
 
 On your deployment servers (DEV/PROD), ensure:
 
-1. Docker and Docker Compose are installed
-2. Clone the repository to `/opt/mars`
-3. Create `.env` file with production database credentials
-4. SSH access is configured with the private key
+1. Docker and Docker Compose V2 are installed
+2. The SSH user has permissions to access the Docker daemon (in `docker` group)
+3. Docker services (`migrator`, `seeder`, `app`) will be created on first deploy
+4. An external MySQL/MariaDB server is accessible from the Docker host
 
 ## Project Structure
 
