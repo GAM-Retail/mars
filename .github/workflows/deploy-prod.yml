@@ -28,8 +28,8 @@ jobs:
           echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
           sudo chmod 600 /etc/wireguard/wg0.conf
           sudo wg-quick up wg0
-          sleep 3
-          nc -zv -w 5 ${{ secrets.HOST }} ${{ secrets.SSH_PORT }}
+          sleep 5
+          ping -c 3 ${{ secrets.HOST }}
 
       - name: Setup SSH for Docker
         run: |
