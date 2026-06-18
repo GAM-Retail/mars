@@ -2,31 +2,56 @@ name: Deploy to Production
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v1.2.3)'
+        required: false
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     environment: production
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
       - name: Install WireGuard
-        run: sudo apt-get update && sudo apt-get install -y wireguard resolvconf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wireguard resolvconf
 
       - name: Connect to Corporate VPN
         run: |
-          # Write the secret config to the correct WireGuard directory
-          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee /etc/wireguard/wg0.conf > /dev/null
-          
-          # Ensure strict permissions so wg-quick doesn't complain
-          sudo chmod 600 /etc/wireguard/wg0.conf
-          
-          # Bring the tunnel up
-          sudo wg-quick up wg0
-          
-          # Optional: Ping the server once to verify the tunnel is routing properly
-          ping -c 1 ${{ secrets.HOST }}
-      - name: Deploy to PROD server via SSH
-        uses: appleboy/ssh-action@v1
+          WG_CONF=$(mktemp /tmp/wg0.conf.XXXXXX)
+          echo "${{ secrets.WIREGUARD_CONFIG }}" | sudo tee "$WG_CONF" > /dev/null
+          sudo chmod 600 "$WG_CONF"
+          sudo wg-quick up "$WG_CONF"
+          rm -f "$WG_CONF"
+          sleep 3
+          nc -zv -w 5 ${{ secrets.HOST }} ${{ secrets.SSH_PORT }}
+
+      - name: Setup SSH for Docker
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/secret_key
+          chmod 600 ~/.ssh/secret_key
+          cat > ~/.ssh/config <<EOF
+          Host ${{ secrets.HOST }}
+            HostName ${{ secrets.HOST }}
+            Port ${{ secrets.SSH_PORT }}
+            IdentityFile ~/.ssh/secret_key
+            StrictHostKeyChecking accept-new
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Build and Deploy
         env:
+          DOCKER_HOST: ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}
+
           DATABASE_URL: ${{ vars.DATABASE_URL }}
           SHADOW_DATABASE_URL: ${{ vars.SHADOW_DATABASE_URL }}
           SESSION_SECRET: ${{ vars.SESSION_SECRET }}
@@ -39,51 +64,20 @@ jobs:
           NOTIFICATION_TOKEN_EMAIL: ${{ vars.NOTIFICATION_TOKEN_EMAIL }}
           NOTIFICATION_TOKEN_APPSNAME: ${{ vars.NOTIFICATION_TOKEN_APPSNAME }}
           APP_URL: ${{ vars.APP_URL }}
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          envs: DATABASE_URL, SHADOW_DATABASE_URL, SESSION_SECRET, INITIAL_USER_PASSWORD, PORT, COOKIE_SECURE,
-            NOTIFICATION_API_URL, NOTIFICATION_TOKEN_API_URL, NOTIFICATION_TOKEN_NAME, NOTIFICATION_TOKEN_EMAIL,
-            NOTIFICATION_TOKEN_APPSNAME, APP_URL
-          script: |
-            set -e 
-            sudo -u purplegit git --git-dir=/opt/git/mars.git fetch origin main
-            sudo -u purplegit git --git-dir=/opt/git/mars.git merge origin main
-            mkdir -p /home/${{ secrets.USERNAME }}/app/mars
-            cd /home/${{ secrets.USERNAME }}/app/mars
-            # State-Aware Git Sync
-            if [ ! -d ".git" ]; then
-              echo "Repository not found. Cloning fresh..."
-              # Replace this URL with your actual repository URL
-              git clone git@github.com:GAM-Retail/mars.git .
-            else
-              echo "Repository exists. Fetching updates..."
-              git fetch origin master
-              git reset --hard origin/master
-            fi
-            
-            echo "Injecting production secrets into .env file..."
-            cat <<EOF > .env
-            DATABASE_URL=$DATABASE_URL
-            SHADOW_DATABASE_URL=$SHADOW_DATABASE_URL
-            SESSION_SECRET=$SESSION_SECRET
-            INITIAL_USER_PASSWORD=$INITIAL_USER_PASSWORD
-            PORT=$PORT
-            COOKIE_SECURE=$COOKIE_SECURE
-            NOTIFICATION_API_URL=$NOTIFICATION_API_URL
-            NOTIFICATION_TOKEN_API_URL=$NOTIFICATION_TOKEN_API_URL
-            NOTIFICATION_TOKEN_NAME=$NOTIFICATION_TOKEN_NAME
-            NOTIFICATION_TOKEN_EMAIL=$NOTIFICATION_TOKEN_EMAIL
-            NOTIFICATION_TOKEN_APPSNAME=$NOTIFICATION_TOKEN_APPSNAME
-            APP_URL=$APP_URL
-            EOF
-            
-            docker compose --env-file .env build --no-cache
-            docker compose --env-file .env up -d --force-recreate
-            docker image prune -f
-            echo "Deployed latest master to PROD server successfully"
+        run: |
+          docker compose -f docker-compose.yml up -d --build --remove-orphans
+
+      - name: Cleanup Docker images
+        env:
+          DOCKER_HOST: ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}
+        run: |
+          docker image prune --filter "until=24h" -f
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f ~/.ssh/secret_key ~/.ssh/config
+
       - name: Disconnect VPN
         if: always()
         run: sudo wg-quick down wg0
