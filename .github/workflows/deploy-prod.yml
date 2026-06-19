@@ -34,17 +34,10 @@ jobs:
       - name: Setup SSH for Docker
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/secret_key
-          chmod 600 ~/.ssh/secret_key
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-          cat > ~/.ssh/config <<EOF
-          Host ${{ secrets.HOST }}
-            HostName ${{ secrets.HOST }}
-            Port ${{ secrets.SSH_PORT }}
-            IdentityFile ~/.ssh/secret_key
-            StrictHostKeyChecking yes
-          EOF
-          chmod 600 ~/.ssh/config
+          chmod 700 ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H -p ${{ secrets.SSH_PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Build and Deploy
         env:
@@ -74,7 +67,7 @@ jobs:
       - name: Cleanup sensitive files
         if: always()
         run: |
-          rm -f ~/.ssh/secret_key ~/.ssh/config ~/.ssh/known_hosts
+          rm -f ~/.ssh/id_ed25519 ~/.ssh/known_hosts ~/.ssh/known_hosts
 
       - name: Disconnect VPN
         if: always()
