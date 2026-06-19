@@ -35,9 +35,14 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+          cat > ~/.ssh/id_ed25519 << 'EOF'
+${{ secrets.SSH_KEY }}
+EOF
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H -p ${{ secrets.SSH_PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts
+          cat > ~/.ssh/config << 'EOF'
+Host ${{ secrets.HOST }}
+  StrictHostKeyChecking accept-new
+EOF
 
       - name: Validate SSH Key
         run: |
@@ -72,7 +77,7 @@ jobs:
       - name: Cleanup sensitive files
         if: always()
         run: |
-          rm -f ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          rm -f ~/.ssh/id_ed25519 ~/.ssh/config
 
       - name: Disconnect VPN
         if: always()
