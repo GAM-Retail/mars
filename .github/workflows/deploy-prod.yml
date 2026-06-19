@@ -31,22 +31,18 @@ jobs:
           sleep 5
           ping -c 3 ${{ secrets.HOST }}
 
-      - name: Debug SSH connectivity
-        run: |
-          ssh -o ConnectTimeout=10 -v ${{ secrets.USERNAME }}@${{ secrets.HOST }} -p ${{ secrets.SSH_PORT }} "echo connected"
-
       - name: Setup SSH for Docker
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/secret_key
           chmod 600 ~/.ssh/secret_key
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.HOST }} >> ~/.ssh/known_hosts
           cat > ~/.ssh/config <<EOF
           Host ${{ secrets.HOST }}
             HostName ${{ secrets.HOST }}
             Port ${{ secrets.SSH_PORT }}
             IdentityFile ~/.ssh/secret_key
-            StrictHostKeyChecking accept-new
-            UserKnownHostsFile ~/.ssh/known_hosts
+            StrictHostKeyChecking yes
           EOF
           chmod 600 ~/.ssh/config
 
@@ -78,7 +74,7 @@ jobs:
       - name: Cleanup sensitive files
         if: always()
         run: |
-          rm -f ~/.ssh/secret_key ~/.ssh/config
+          rm -f ~/.ssh/secret_key ~/.ssh/config ~/.ssh/known_hosts
 
       - name: Disconnect VPN
         if: always()
