@@ -44,6 +44,18 @@ jobs:
         run: |
           ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
 
+      - name: Verify VPN
+        run: |
+          ping -c 3 ${{ secrets.HOST }}
+      
+          sudo wg show
+      
+          ip route
+      
+          timeout 5 bash -c "</dev/tcp/${{ secrets.HOST }}/${{ secrets.SSH_PORT }}" \
+            && echo "TCP OPEN" \
+            || echo "TCP CLOSED"
+
       - name: Debug Docker connectivity
         run: |
           ssh -o ConnectTimeout=10 \
