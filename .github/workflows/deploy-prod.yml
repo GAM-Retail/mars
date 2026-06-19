@@ -32,17 +32,13 @@ jobs:
           ping -c 3 ${{ secrets.HOST }}
 
       - name: Setup SSH for Docker
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          cat > ~/.ssh/id_ed25519 << 'EOF'
-${{ secrets.SSH_KEY }}
-EOF
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          cat > ~/.ssh/config << 'EOF'
-Host ${{ secrets.HOST }}
-  StrictHostKeyChecking accept-new
-EOF
 
       - name: Validate SSH Key
         run: |
