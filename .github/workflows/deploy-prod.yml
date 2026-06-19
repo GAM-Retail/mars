@@ -43,7 +43,14 @@ jobs:
       - name: Validate SSH Key
         run: |
           ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
-          echo "SSH key valid"
+
+      - name: Debug Docker connectivity
+        run: |
+          ssh -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=accept-new \
+            -p ${{ secrets.SSH_PORT }} \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
+            "echo connected"
 
       - name: Build and Deploy
         env:
