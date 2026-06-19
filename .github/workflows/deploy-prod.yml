@@ -31,6 +31,10 @@ jobs:
           sleep 5
           ping -c 3 ${{ secrets.HOST }}
 
+      - name: Debug SSH connectivity
+        run: |
+          ssh -o ConnectTimeout=10 -v ${{ secrets.USERNAME }}@${{ secrets.HOST }} -p ${{ secrets.SSH_PORT }} "echo connected"
+
       - name: Setup SSH for Docker
         run: |
           mkdir -p ~/.ssh
@@ -48,7 +52,7 @@ jobs:
 
       - name: Build and Deploy
         env:
-          DOCKER_HOST: ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}
+          DOCKER_HOST: ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}:${{ secrets.SSH_PORT }}
 
           DATABASE_URL: ${{ vars.DATABASE_URL }}
           SHADOW_DATABASE_URL: ${{ vars.SHADOW_DATABASE_URL }}
@@ -67,7 +71,7 @@ jobs:
 
       - name: Cleanup Docker images
         env:
-          DOCKER_HOST: ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}
+          DOCKER_HOST: ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}:${{ secrets.SSH_PORT }}
         run: |
           docker image prune --filter "until=24h" -f
 
