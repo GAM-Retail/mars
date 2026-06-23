@@ -12,8 +12,8 @@ A web application for managing meeting rooms and reservations. Built with [Solid
 
 ## Prerequisites
 
-- Node.js >= 22
-- pnpm >= 10.33
+- Node.js >= 24
+- pnpm >= 11.8
 - MySQL server
 
 ## Getting Started
