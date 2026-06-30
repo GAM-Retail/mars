@@ -20,8 +20,10 @@ model User {
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   ext                 String?              @default("-")
-  division            String?              @default("-")
-  department          String?              @default("-")
+  divisionId          String?              @map("division_id")
+  division            Division?            @relation(fields: [divisionId], references: [id], onDelete: SetNull)
+  departmentId        String?              @map("department_id")
+  department          Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   facilities          Facility[]
   rooms               Room[]
   roomPersonInCharges RoomPersonInCharge[]
@@ -91,8 +93,10 @@ model Organizer {
   name             String
   email            String            @unique
   phone            String
-  department       String?
-  division         String?
+  departmentId     String?           @map("department_id")
+  department       Department?       @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  divisionId       String?           @map("division_id")
+  division         Division?         @relation(fields: [divisionId], references: [id], onDelete: SetNull)
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   roomReservations RoomReservation[]
@@ -155,4 +159,38 @@ model RoomReservationNotificationLog {
   sentAt           DateTime            @default(now()) @map("sent_at")
 
   @@map("tx_room_reservation_notification_logs")
+}
+
+model Division {
+  id            String          @id @default(uuid())
+  name          String
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  organizations Organizations[]
+  users         User[]
+  organizers    Organizer[]
+
+  @@map("tm_divisions")
+}
+
+model Department {
+  id            String          @id @default(uuid())
+  name          String
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  organizations Organizations[]
+  users         User[]
+  organizers    Organizer[]
+
+  @@map("tm_departments")
+}
+
+model Organizations {
+  id           String     @id @default(uuid())
+  departmentId String     @map("department_id")
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  divsionId    String     @map("division_id")
+  division     Division   @relation(fields: [divsionId], references: [id], onDelete: Cascade)
+
+  @@map("tm_organizations")
 }
