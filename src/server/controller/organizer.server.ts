@@ -37,8 +37,8 @@ export const createOrUpdateOrganizer = async (organizer: {
       name: organizer.name,
       email: organizer.email,
       phone: organizer.phone,
-      division: organizer.division,
-      department: organizer.department,
+      divisionId: organizer.division,
+      departmentId: organizer.department,
     });
     organizerId = existingOrganizer.id;
   } else {
@@ -47,8 +47,8 @@ export const createOrUpdateOrganizer = async (organizer: {
       name: organizer.name,
       email: organizer.email,
       phone: organizer.phone,
-      division: organizer.division,
-      department: organizer.department,
+      divisionId: organizer.division,
+      departmentId: organizer.department,
     });
     organizerId = newOrganizer.id;
   }

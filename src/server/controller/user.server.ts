@@ -8,6 +8,7 @@ import {
   getAllUsers as getAllUsersRepository,
   getUserById,
   updateUser,
+  changeUserPassword,
 } from '~/server/repository/user.server';
 import { validateSession, validateSessionWithRole } from '~/server/lib';
 import { UserRole } from '~/generated/prisma/enums';
@@ -122,8 +123,8 @@ export const updateUserAction = action(
       role: currentRole,
       password: values.password,
       ext: values.ext,
-      division: values.division,
-      department: values.department,
+      divisionId: values.division,
+      departmentId: values.department,
     });
 
     return { user: updatedUser };
@@ -179,17 +180,7 @@ export const changePasswordAction = action(
       throw new Error('Current password is incorrect');
     }
 
-    await updateUser({
-      id: values.id,
-      nik: user.nik,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      password: values.newPassword,
-      ext: user.ext ?? undefined,
-      division: user.division ?? undefined,
-      department: user.department ?? undefined,
-    });
+    await changeUserPassword(user.id, values.newPassword);
 
     return { success: true };
   },
@@ -204,17 +195,7 @@ export const resetPasswordAction = action(async (values: { id: string; newPasswo
     throw new NotFoundError('User does not exist');
   }
 
-  await updateUser({
-    id: values.id,
-    nik: user.nik,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    password: values.newPassword,
-    ext: user.ext ?? undefined,
-    division: user.division ?? undefined,
-    department: user.department ?? undefined,
-  });
+  await changeUserPassword(user.id, values.newPassword);
 
   return { success: true };
 });

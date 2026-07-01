@@ -48,10 +48,10 @@ export default function EditUser() {
         email: data.email,
         name: data.name,
         role: data.role as UserRole,
-        password: (data.password as string) || undefined,
-        ext: (data.ext as string) || undefined,
-        division: (data.division as string) || undefined,
-        department: (data.department as string) || undefined,
+        password: data.password || undefined,
+        ext: data.ext || undefined,
+        division: data.division || undefined,
+        department: data.department || undefined,
       });
       toast('User has been updated', {
         description: `${result.user.name} has been updated successfully.`,
@@ -93,8 +93,8 @@ export default function EditUser() {
             email: userResource()?.user.email,
             role: userResource()?.user.role,
             ext: userResource()?.user.ext || undefined,
-            division: userResource()?.user.division || undefined,
-            department: userResource()?.user.department || undefined,
+            division: userResource()?.user.division?.name || undefined,
+            department: userResource()?.user.department?.name || undefined,
           }}
         />
       </div>

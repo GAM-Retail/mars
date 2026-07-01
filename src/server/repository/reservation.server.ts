@@ -7,11 +7,22 @@ export const getAllReservations = async (includeDeleted?: boolean) => {
     include: {
       room: true,
       reservedBy: {
-        omit: {
-          password: true,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          nik: true,
+          department: true,
+          division: true,
+          ext: true,
         },
       },
-      organizer: true,
+      organizer: {
+        include: {
+          department: true,
+          division: true,
+        },
+      },
     },
     orderBy: { startTime: 'desc' },
   });
@@ -34,8 +45,23 @@ export const getAllReservationsByPersonInCharge = async (
     },
     include: {
       room: true,
-      reservedBy: true,
-      organizer: true,
+      reservedBy: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          nik: true,
+          department: true,
+          division: true,
+          ext: true,
+        },
+      },
+      organizer: {
+        include: {
+          department: true,
+          division: true,
+        },
+      },
     },
     orderBy: { startTime: 'desc' },
   });
@@ -46,8 +72,23 @@ export const getReservationById = async (id: string) => {
     where: { id },
     include: {
       room: true,
-      reservedBy: { select: { id: true, name: true, email: true } },
-      organizer: true,
+      reservedBy: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          nik: true,
+          department: true,
+          division: true,
+          ext: true,
+        },
+      },
+      organizer: {
+        include: {
+          department: true,
+          division: true,
+        },
+      },
     },
   });
 };
@@ -60,8 +101,23 @@ export const getReservationsByRoomIds = async (roomIds: string[], includeDeleted
     },
     include: {
       room: true,
-      reservedBy: true,
-      organizer: true,
+      reservedBy: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          nik: true,
+          department: true,
+          division: true,
+          ext: true,
+        },
+      },
+      organizer: {
+        include: {
+          department: true,
+          division: true,
+        },
+      },
     },
     orderBy: { startTime: 'desc' },
   });
@@ -72,9 +128,22 @@ export const getReservationsByRoomId = async (roomId: string) => {
     include: {
       room: true,
       reservedBy: {
-        select: { id: true, name: true, email: true, nik: true, department: true, division: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          nik: true,
+          department: true,
+          division: true,
+          ext: true,
+        },
       },
-      organizer: true,
+      organizer: {
+        include: {
+          department: true,
+          division: true,
+        },
+      },
     },
     orderBy: { startTime: 'desc' },
   });

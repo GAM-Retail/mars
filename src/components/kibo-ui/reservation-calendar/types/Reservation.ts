@@ -1,10 +1,24 @@
-import type { Organizer, Room, RoomReservation, User } from '~/generated/prisma/client';
+import type { Room, RoomReservation } from '~/generated/prisma/client';
+import { OrganizerGetPayload } from '~/generated/prisma/models/Organizer';
+import { UserGetPayload } from '~/generated/prisma/models/User';
 
 export type ReservationRoom = Room;
 
-export type ReservationUser = Omit<User, 'password'>;
+export type ReservationUser = UserGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    email: true;
+    nik: true;
+    department: true;
+    division: true;
+    ext: true;
+  };
+}>;
 
-export type ReservationOrganizer = Organizer;
+export type ReservationOrganizer = OrganizerGetPayload<{
+  include: { department: true; division: true };
+}>;
 
 export type Reservation = RoomReservation & {
   room: ReservationRoom;

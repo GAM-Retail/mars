@@ -246,14 +246,19 @@ export default function ReservationDetail() {
                         <Building2 class="h-4 w-4" />
                         <p class="text-xs">Division</p>
                       </div>
-                      <p class="text-sm font-medium">{res.organizer.division || '-'}</p>
+
+                      <Show when={res.organizer.division} fallback="-">
+                        {(data) => <p class="text-sm font-medium">{data().name}</p>}
+                      </Show>
                     </div>
                     <div class="space-y-2">
                       <div class="flex items-center gap-2 text-muted-foreground">
                         <Building2 class="h-4 w-4" />
                         <p class="text-xs">Department</p>
                       </div>
-                      <p class="text-sm font-medium">{res.organizer.department || '-'}</p>
+                      <Show when={res.organizer.department} fallback="-">
+                        {(data) => <p class="text-sm font-medium">{data().name}</p>}
+                      </Show>
                     </div>
                   </div>
                 </div>

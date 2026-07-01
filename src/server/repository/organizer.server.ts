@@ -19,6 +19,10 @@ export const getOrganizerByNik = async (nik: string) => {
   'use server';
   return db.organizer.findFirst({
     where: { nik },
+    include: {
+      department: true,
+      division: true,
+    },
   });
 };
 
@@ -33,8 +37,8 @@ export const createOrganizer = async (data: {
   name: string;
   email: string;
   phone: string;
-  department?: string;
-  division?: string;
+  departmentId?: string;
+  divisionId?: string;
 }) => {
   'use server';
   return db.organizer.create({
@@ -43,8 +47,8 @@ export const createOrganizer = async (data: {
       name: data.name,
       email: data.email,
       phone: data.phone,
-      department: data.department,
-      division: data.division,
+      departmentId: data.departmentId,
+      divisionId: data.divisionId,
     },
   });
 };
@@ -55,8 +59,8 @@ export const updateOrganizer = async (data: {
   name: string;
   email: string;
   phone: string;
-  department?: string;
-  division?: string;
+  departmentId?: string;
+  divisionId?: string;
 }) => {
   'use server';
   return db.organizer.update({
@@ -65,8 +69,8 @@ export const updateOrganizer = async (data: {
       name: data.name,
       email: data.email,
       phone: data.phone,
-      department: data.department,
-      division: data.division,
+      departmentId: data.departmentId,
+      divisionId: data.divisionId,
     },
     where: { id: data.id },
   });

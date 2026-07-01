@@ -1,6 +1,7 @@
 import db from '~/lib/db';
 import { hashPassword } from '~/server/lib/hash.server';
 import { UserRole } from '~/generated/prisma/enums';
+import { UserGetPayload } from '~/generated/prisma/models/User';
 
 export const getAllUsers = async () => {
   return db.user.findMany({
@@ -20,20 +21,13 @@ export const getAllUsers = async () => {
   });
 };
 
-type UserPublic = {
-  id: string;
-  nik: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  createdAt: Date;
-  updatedAt: Date;
-  ext: string | null;
-  division: string | null;
-  department: string | null;
-};
-type UserFull = UserPublic & { password: string };
-
+type UserFull = UserGetPayload<{
+  include: {
+    department: true;
+    division: true;
+  };
+}>;
+type UserPublic = Omit<UserFull, 'password'>;
 export async function getUserById(
   id: string,
   options: { includeSensitive: true },
@@ -47,18 +41,10 @@ export async function getUserById(id: string, options: { includeSensitive?: bool
 
   return db.user.findUnique({
     where: { id },
-    select: {
-      id: true,
-      nik: true,
-      email: true,
-      name: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-      ext: true,
-      division: true,
+    ...(!includeSensitive && { omit: { password: true } }),
+    include: {
       department: true,
-      ...(includeSensitive && { password: true }),
+      division: true,
     },
   });
 }
@@ -70,8 +56,8 @@ export const createUser = async (data: {
   password: string;
   role: UserRole;
   ext?: string;
-  division?: string;
-  department?: string;
+  divisionId?: string;
+  departmentId?: string;
 }) => {
   const hashedPassword = await hashPassword(data.password);
   return db.user.create({
@@ -82,8 +68,8 @@ export const createUser = async (data: {
       password: hashedPassword,
       role: data.role,
       ext: data.ext,
-      division: data.division,
-      department: data.department,
+      divisionId: data.divisionId,
+      departmentId: data.departmentId,
     },
   });
 };
@@ -96,8 +82,8 @@ export const updateUser = async (data: {
   role: UserRole;
   password?: string;
   ext?: string;
-  division?: string;
-  department?: string;
+  divisionId?: string;
+  departmentId?: string;
 }) => {
   return db.user.update({
     data: {
@@ -107,10 +93,19 @@ export const updateUser = async (data: {
       role: data.role,
       ...(data.password && { password: await hashPassword(data.password) }),
       ext: data.ext,
-      division: data.division,
-      department: data.department,
+      divisionId: data.divisionId,
+      departmentId: data.departmentId,
     },
     where: { id: data.id },
+  });
+};
+
+export const changeUserPassword = async (id: string, newPassword: string) => {
+  return db.user.update({
+    data: {
+      password: newPassword,
+    },
+    where: { id: id },
   });
 };
 

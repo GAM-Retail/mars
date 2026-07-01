@@ -113,8 +113,8 @@ export default function EditReservation() {
                 organizerName: r.organizer.name ?? org?.organizerName,
                 organizerEmail: r.organizer.email ?? org?.organizerEmail,
                 organizerPhone: r.organizer.phone ?? org?.organizerPhone,
-                organizerDivision: r.organizer.division ?? org?.organizerDivision,
-                organizerDepartment: r.organizer.department ?? org?.organizerDepartment,
+                organizerDivision: r.organizer.division?.name ?? org?.organizerDivision,
+                organizerDepartment: r.organizer.department?.name ?? org?.organizerDepartment,
                 agenda: r.agenda || undefined,
               }}
             />
