@@ -135,3 +135,37 @@ export const hardDeleteReservationsByUser = async (userId: string) => {
     where: { reservedById: userId, deletedAt: { not: null } },
   });
 };
+
+export const getUsersByDivisionId = async (divisionId: string) => {
+  return db.user.findMany({
+    where: { divisionId },
+    select: {
+      id: true,
+      nik: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+      ext: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+};
+
+export const getUsersByDepartmentId = async (departmentId: string) => {
+  return db.user.findMany({
+    where: { departmentId },
+    select: {
+      id: true,
+      nik: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+      ext: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+};

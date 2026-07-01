@@ -7,6 +7,8 @@ import {
   hardDeleteReservationsByUser,
   getAllUsers as getAllUsersRepository,
   getUserById,
+  getUsersByDivisionId,
+  getUsersByDepartmentId,
   updateUser,
   changeUserPassword,
 } from '~/server/repository/user.server';
@@ -185,6 +187,20 @@ export const changePasswordAction = action(
     return { success: true };
   },
 );
+
+export const getUsersByDivisionController = query(async (divisionId: string) => {
+  'use server';
+  await validateSession();
+  const users = await getUsersByDivisionId(divisionId);
+  return { users };
+}, 'getUsersByDivision');
+
+export const getUsersByDepartmentController = query(async (departmentId: string) => {
+  'use server';
+  await validateSession();
+  const users = await getUsersByDepartmentId(departmentId);
+  return { users };
+}, 'getUsersByDepartment');
 
 export const resetPasswordAction = action(async (values: { id: string; newPassword: string }) => {
   'use server';
