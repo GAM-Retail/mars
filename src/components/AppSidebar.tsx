@@ -20,6 +20,7 @@ import {
   LampDesk,
   LayoutDashboard,
   LucideIcon,
+  Network,
   Presentation,
   User,
 } from 'lucide-solid';
@@ -74,6 +75,11 @@ const items: SidebarItem[] = [
         title: 'User Management',
         url: '/user',
         icon: User,
+      },
+      {
+        title: 'Division',
+        url: '/division',
+        icon: Network,
       },
     ],
     role: ['SUPERADMIN'],
