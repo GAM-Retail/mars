@@ -189,8 +189,8 @@ model Organizations {
   id           String     @id @default(uuid())
   departmentId String     @map("department_id")
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  divsionId    String     @map("division_id")
-  division     Division   @relation(fields: [divsionId], references: [id], onDelete: Cascade)
+  divisionId   String     @map("division_id")
+  division     Division   @relation(fields: [divisionId], references: [id], onDelete: Cascade)
 
   @@map("tm_organizations")
 }
