@@ -53,6 +53,34 @@ export const createOrganizer = async (data: {
   });
 };
 
+export const getOrganizersByDivisionId = async (divisionId: string) => {
+  return db.organizer.findMany({
+    where: { divisionId },
+    select: {
+      id: true,
+      nik: true,
+      name: true,
+      email: true,
+      phone: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+};
+
+export const getOrganizersByDepartmentId = async (departmentId: string) => {
+  return db.organizer.findMany({
+    where: { departmentId },
+    select: {
+      id: true,
+      nik: true,
+      name: true,
+      email: true,
+      phone: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+};
+
 export const updateOrganizer = async (data: {
   id: string;
   nik: string;

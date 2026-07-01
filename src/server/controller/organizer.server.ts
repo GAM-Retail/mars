@@ -3,6 +3,8 @@ import { query } from '@solidjs/router';
 import {
   createOrganizer,
   getOrganizerByNik,
+  getOrganizersByDivisionId,
+  getOrganizersByDepartmentId,
   updateOrganizer,
 } from '~/server/repository/organizer.server';
 
@@ -16,6 +18,20 @@ export const getOrganizerByNikController = query(async (nik: string) => {
 
   return await getOrganizerByNik(nik);
 }, 'getOrganizerByNikController');
+
+export const getOrganizersByDivisionController = query(async (divisionId: string) => {
+  'use server';
+  await validateSession();
+  const organizers = await getOrganizersByDivisionId(divisionId);
+  return { organizers };
+}, 'getOrganizersByDivision');
+
+export const getOrganizersByDepartmentController = query(async (departmentId: string) => {
+  'use server';
+  await validateSession();
+  const organizers = await getOrganizersByDepartmentId(departmentId);
+  return { organizers };
+}, 'getOrganizersByDepartment');
 
 export const createOrUpdateOrganizer = async (organizer: {
   nik: string;
