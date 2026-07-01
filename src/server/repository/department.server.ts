@@ -28,6 +28,9 @@ export const getAll = async () => {
 export const getById = async (id: string) => {
   return db.department.findUnique({
     where: { id },
+    include: {
+      organizations: { include: { division: true } },
+    },
   });
 };
 
