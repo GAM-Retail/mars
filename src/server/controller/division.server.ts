@@ -1,5 +1,14 @@
 import { action, json, query } from '@solidjs/router';
-import { add, deleteById, edit, getAll, getById } from '~/server/repository/division.server';
+import {
+  add,
+  addDepartmentToDivision,
+  deleteById,
+  edit,
+  getAll,
+  getById,
+  removeDepartmentFromDivision,
+} from '~/server/repository/division.server';
+import { getAll as getAllDepartments } from '~/server/repository/department.server';
 import { validateSession } from '~/server/lib';
 import { NotFoundError } from '~/lib/error';
 
@@ -54,3 +63,37 @@ export const getDivisionById = query(async (id: string) => {
   if (!division) throw new NotFoundError('Division does not exist');
   return { division };
 }, 'getDivisionById');
+
+export const addDepartmentToDivisionAction = action(
+  async (divisionId: string, departmentId: string) => {
+    'use server';
+    await validateSession();
+
+    const division = await getById(divisionId);
+    if (!division) throw new NotFoundError('Division not found');
+
+    await addDepartmentToDivision(divisionId, departmentId);
+
+    return { success: true };
+  },
+);
+
+export const removeDepartmentFromDivisionAction = action(
+  async (divisionId: string, departmentId: string) => {
+    'use server';
+    await validateSession();
+
+    const division = await getById(divisionId);
+    if (!division) throw new NotFoundError('Division not found');
+
+    await removeDepartmentFromDivision(divisionId, departmentId);
+
+    return { success: true };
+  },
+);
+
+export const getAllDepartmentsForDivision = query(async () => {
+  'use server';
+  const departments = await getAllDepartments();
+  return { departments };
+}, 'getAllDepartmentsForDivision');
