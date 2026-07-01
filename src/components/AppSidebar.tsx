@@ -23,6 +23,7 @@ import {
   Network,
   Presentation,
   User,
+  Users,
 } from 'lucide-solid';
 import { UserRole } from '~/types';
 import {
@@ -80,6 +81,11 @@ const items: SidebarItem[] = [
         title: 'Division',
         url: '/division',
         icon: Network,
+      },
+      {
+        title: 'Department',
+        url: '/department',
+        icon: Users,
       },
     ],
     role: ['SUPERADMIN'],
