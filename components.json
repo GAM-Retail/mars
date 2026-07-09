@@ -1,18 +1,18 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "radix-mira",
+  "style": "radix-vega",
   "rsc": false,
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/app.css",
-    "baseColor": "neutral",
+    "css": "app/app.css",
+    "baseColor": "mist",
     "cssVariables": true,
     "prefix": ""
   },
   "iconLibrary": "lucide",
   "rtl": false,
-  "menuColor": "inverted-translucent",
+  "menuColor": "default",
   "menuAccent": "subtle",
   "aliases": {
     "components": "~/components",
@@ -22,7 +22,6 @@
     "hooks": "~/hooks"
   },
   "registries": {
-    "@kibo-ui": "https://www.kibo-ui.com/r/{name}.json",
-    "@solid-ui": "https://solid-ui.com/r/{name}.json"
+    "@kibo-ui": "https://www.kibo-ui.com/r/{name}.json"
   }
 }
