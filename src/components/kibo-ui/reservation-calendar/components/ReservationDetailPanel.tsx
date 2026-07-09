@@ -65,7 +65,7 @@ function DetailContent(props: Readonly<{ reservation: Reservation }>): JSX.Eleme
           <p class="text-sm">{props.reservation.organizer.name}</p>
           <p class="text-xs text-muted-foreground">{props.reservation.organizer.email}</p>
           <Show when={props.reservation.organizer.department}>
-            <p class="text-xs text-muted-foreground">{props.reservation.organizer.department}</p>
+            {(data) => <p class="text-xs text-muted-foreground">{data().name}</p>}
           </Show>
         </div>
 

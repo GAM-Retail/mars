@@ -7,7 +7,10 @@ import {
   hardDeleteReservationsByUser,
   getAllUsers as getAllUsersRepository,
   getUserById,
+  getUsersByDivisionId,
+  getUsersByDepartmentId,
   updateUser,
+  changeUserPassword,
 } from '~/server/repository/user.server';
 import { validateSession, validateSessionWithRole } from '~/server/lib';
 import { UserRole } from '~/generated/prisma/enums';
@@ -45,8 +48,8 @@ export const createUserAction = action(
     password: string;
     role: UserRole;
     ext?: string;
-    division?: string;
-    department?: string;
+    divisionId?: string;
+    departmentId?: string;
   }) => {
     'use server';
     await validateSessionWithRole('SUPERADMIN');
@@ -76,8 +79,8 @@ export const updateUserAction = action(
     role?: UserRole;
     password?: string;
     ext?: string;
-    division?: string;
-    department?: string;
+    divisionId?: string;
+    departmentId?: string;
     isProfileUpdate?: boolean;
   }) => {
     'use server';
@@ -122,8 +125,8 @@ export const updateUserAction = action(
       role: currentRole,
       password: values.password,
       ext: values.ext,
-      division: values.division,
-      department: values.department,
+      divisionId: values.divisionId,
+      departmentId: values.departmentId,
     });
 
     return { user: updatedUser };
@@ -179,21 +182,25 @@ export const changePasswordAction = action(
       throw new Error('Current password is incorrect');
     }
 
-    await updateUser({
-      id: values.id,
-      nik: user.nik,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      password: values.newPassword,
-      ext: user.ext ?? undefined,
-      division: user.division ?? undefined,
-      department: user.department ?? undefined,
-    });
+    await changeUserPassword(user.id, values.newPassword);
 
     return { success: true };
   },
 );
+
+export const getUsersByDivisionController = query(async (divisionId: string) => {
+  'use server';
+  await validateSession();
+  const users = await getUsersByDivisionId(divisionId);
+  return { users };
+}, 'getUsersByDivision');
+
+export const getUsersByDepartmentController = query(async (departmentId: string) => {
+  'use server';
+  await validateSession();
+  const users = await getUsersByDepartmentId(departmentId);
+  return { users };
+}, 'getUsersByDepartment');
 
 export const resetPasswordAction = action(async (values: { id: string; newPassword: string }) => {
   'use server';
@@ -204,17 +211,7 @@ export const resetPasswordAction = action(async (values: { id: string; newPasswo
     throw new NotFoundError('User does not exist');
   }
 
-  await updateUser({
-    id: values.id,
-    nik: user.nik,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    password: values.newPassword,
-    ext: user.ext ?? undefined,
-    division: user.division ?? undefined,
-    department: user.department ?? undefined,
-  });
+  await changeUserPassword(user.id, values.newPassword);
 
   return { success: true };
 });

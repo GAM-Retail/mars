@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import {
   Calendar,
   Cog,
@@ -25,10 +25,23 @@ import {
 import { toast } from 'solid-sonner';
 import { useAction, useNavigate, A } from '@solidjs/router';
 import { deleteUserAction } from '~/server/controller/user.server';
-import type { User } from '~/generated/prisma/client';
+import { UserGetPayload } from '~/generated/prisma/models/User';
 
 type Props = {
-  user: Omit<User, 'password'>;
+  user: UserGetPayload<{
+    select: {
+      id: true;
+      name: true;
+      email: true;
+      nik: true;
+      department: true;
+      division: true;
+      ext: true;
+      role: true;
+      createdAt: true;
+      updatedAt: true;
+    };
+  }>;
 };
 
 export default function UserDetail(props: Readonly<Props>) {
@@ -142,14 +155,18 @@ export default function UserDetail(props: Readonly<Props>) {
                   <MapPin class="h-4 w-4" />
                   <p class="text-xs">Division</p>
                 </div>
-                <p class="text-sm font-medium">{props.user.division || '-'}</p>
+                <Show when={props.user.division}>
+                  {(data) => <p class="text-sm font-medium">{data().name}</p>}
+                </Show>
               </div>
               <div class="space-y-2">
                 <div class="flex items-center gap-2 text-muted-foreground">
                   <Building2 class="h-4 w-4" />
                   <p class="text-xs">Department</p>
                 </div>
-                <p class="text-sm font-medium">{props.user.department || '-'}</p>
+                <Show when={props.user.department}>
+                  {(data) => <p class="text-sm font-medium">{data().name}</p>}
+                </Show>
               </div>
             </div>
           </div>

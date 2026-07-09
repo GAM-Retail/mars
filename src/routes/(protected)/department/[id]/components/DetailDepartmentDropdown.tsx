@@ -1,7 +1,7 @@
-import type { FacilityModel } from '~/generated/prisma/models';
+import type { DepartmentModel } from '~/generated/prisma/models';
 import { createSignal } from 'solid-js';
-import { A, useAction, useNavigate } from '@solidjs/router';
-import { deleteFacility } from '~/server/controller/facility.server';
+import { A, revalidate, useAction, useNavigate } from '@solidjs/router';
+import { deleteDepartment, getAllDepartment } from '~/server/controller/department.server';
 import { toast } from 'solid-sonner';
 import {
   DropdownMenu,
@@ -18,21 +18,21 @@ import {
   AlertDialogTitle,
 } from '~/components/ui/alert-dialog';
 
-type FacilityWithUser = FacilityModel;
-export default function DetailFacilityDropdown(props: Readonly<{ facility: FacilityWithUser }>) {
+export default function DetailDepartmentDropdown(props: Readonly<{ department: DepartmentModel }>) {
   const [open, setOpen] = createSignal(false);
-  const deleteFacilityAction = useAction(deleteFacility);
+  const deleteDepartmentAction = useAction(deleteDepartment);
 
   const navigate = useNavigate();
   const onDelete = async () => {
     try {
-      await deleteFacilityAction(props.facility.id);
-      toast('Facility has been deleted', {
-        description: `Facility ${props.facility.name} has been deleted successfully.`,
+      await deleteDepartmentAction(props.department.id);
+      toast('Department has been deleted', {
+        description: `Department ${props.department.name} has been deleted successfully.`,
       });
-      navigate('/facility');
+      navigate('/department');
+      void revalidate(getAllDepartment.key);
     } catch (error) {
-      toast('Failed to delete facility', {
+      toast('Failed to delete department', {
         description: error instanceof Error ? error.message : 'Unknown error',
       });
     }
@@ -46,8 +46,8 @@ export default function DetailFacilityDropdown(props: Readonly<{ facility: Facil
         <DropdownMenuContent>
           <DropdownMenuItem
             as={A}
-            href={`/facility/${props.facility.id}/edit`}
-            onSelect={() => navigate(`/facility/${props.facility.id}/edit`)}
+            href={`/department/${props.department.id}/edit`}
+            onSelect={() => navigate(`/department/${props.department.id}/edit`)}
           >
             Edit
           </DropdownMenuItem>
@@ -64,10 +64,10 @@ export default function DetailFacilityDropdown(props: Readonly<{ facility: Facil
       </DropdownMenu>
       <AlertDialog open={open()} onOpenChange={setOpen} modal>
         <AlertDialogContent>
-          <AlertDialogTitle>Delete {props.facility.name}</AlertDialogTitle>
+          <AlertDialogTitle>Delete {props.department.name}</AlertDialogTitle>
           <AlertDialogDescription>
             <div>
-              <p>Are you sure you want to delete this facility? This action cannot be undone.</p>
+              <p>Are you sure you want to delete this department? This action cannot be undone.</p>
               <span>
                 <Button variant="destructive" class="w-full mt-2 text-white" onClick={onDelete}>
                   Delete

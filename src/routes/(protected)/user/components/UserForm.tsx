@@ -1,6 +1,7 @@
 import * as v from 'valibot';
-import { createForm, DeepPartial, Field, Form } from '@formisch/solid';
-import { Show } from 'solid-js';
+import { createForm, DeepPartial, Field, Form, getInput } from '@formisch/solid';
+import { createMemo, createSignal, Show, untrack } from 'solid-js';
+import { createAsync } from '@solidjs/router';
 import {
   TextField,
   TextFieldErrorMessage,
@@ -15,6 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
+import OrganizationsCombobox from '~/components/OrganizationsCombobox';
+import {
+  getAllDivision,
+  getDepartmentsByDivisionIdQuery,
+} from '~/server/controller/division.server';
 
 export const UserSchema = v.object({
   nik: v.pipe(
@@ -29,23 +35,48 @@ export const UserSchema = v.object({
   ),
   name: v.pipe(v.string('Please enter a name'), v.nonEmpty('Please enter a name')),
   role: v.pipe(v.string('Please select a role'), v.nonEmpty('Please select a role')),
-  password: v.pipe(v.string(), v.minLength(6, 'Password must be at least 6 characters')),
+  // Formisch's <Form> cannot accept FormStore<CreateSchema> | FormStore<UpdateSchema>
+  // that's why, `password` is optional in the shared schema and validate manually when creating a users.
+  // Ref: https://github.com/open-circle/formisch/issues/152
+  password: v.optional(
+    v.pipe(v.string(), v.minLength(6, 'Password must be at least 6 characters')),
+  ),
   ext: v.optional(v.string()),
-  division: v.optional(v.string()),
-  department: v.optional(v.string()),
+  division: v.nullish(v.object({ label: v.string(), value: v.string() })),
+  department: v.nullish(v.object({ label: v.string(), value: v.string() })),
 });
 
-type UserFormProps = {
-  onSubmit: (data: v.InferInput<typeof UserSchema>) => void;
-  initialValues?: DeepPartial<v.InferInput<typeof UserSchema>>;
-  showPassword?: boolean;
-};
+type UserFormProps =
+  | {
+      formType: 'create';
+      onSubmit: (data: v.InferInput<typeof UserSchema>) => void;
+    }
+  | {
+      formType: 'update';
+      onSubmit: (data: v.InferInput<typeof UserSchema>) => void;
+      initialValues?: DeepPartial<v.InferInput<typeof UserSchema>>;
+    };
 
 export default function UserForm(props: Readonly<UserFormProps>) {
   const userForm = createForm({
     schema: UserSchema,
-    initialInput: props.initialValues,
+    initialInput: untrack(() => (props.formType === 'update' ? props.initialValues : undefined)),
   });
+
+  const divisions = createAsync(() => getAllDivision());
+  const divisionOptions = () =>
+    divisions()?.divisions?.map((d) => ({ label: d.name, value: d.id })) ?? [];
+  const [selectedDivision, setSelectedDivision] = createSignal(
+    null as { label: string; value: string } | null,
+  );
+  const departments = createAsync(async () => {
+    const divisionId = '';
+    if (!divisionId) return null;
+
+    return getDepartmentsByDivisionIdQuery(divisionId);
+  });
+  const departmentOptions = () =>
+    departments()?.departments?.map((d) => ({ label: d.name, value: d.id })) ?? [];
 
   return (
     <Form
@@ -134,7 +165,7 @@ export default function UserForm(props: Readonly<UserFormProps>) {
           </TextField>
         )}
       </Field>
-      <Show when={props.showPassword}>
+      <Show when={props.formType === 'create'}>
         <Field of={userForm} path={['password']}>
           {(field) => (
             <TextField
@@ -142,7 +173,7 @@ export default function UserForm(props: Readonly<UserFormProps>) {
               validationState={field?.errors?.length ? 'invalid' : 'valid'}
               value={field.input}
               onChange={field.onInput}
-              required={props.showPassword}
+              required
             >
               <TextFieldLabel>Password</TextFieldLabel>
               <TextFieldInput type="password" />
@@ -167,30 +198,34 @@ export default function UserForm(props: Readonly<UserFormProps>) {
       </Field>
       <Field of={userForm} path={['division']}>
         {(field) => (
-          <TextField
+          <OrganizationsCombobox
+            label="Divisions"
+            description="Please select division for user"
+            options={divisionOptions()}
+            value={field.input as { label: string; value: string } | null}
+            onChange={(value) => {
+              setSelectedDivision(value);
+              field.onInput(value);
+            }}
             name={field.props.name}
-            validationState={field?.errors?.length ? 'invalid' : 'valid'}
-            value={field.input}
-            onChange={field.onInput}
-          >
-            <TextFieldLabel>Division</TextFieldLabel>
-            <TextFieldInput />
-            <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
-          </TextField>
+          />
         )}
       </Field>
       <Field of={userForm} path={['department']}>
         {(field) => (
-          <TextField
+          <OrganizationsCombobox
+            label="Departments"
+            description={
+              selectedDivision()
+                ? 'Please select department for users'
+                : 'Please select division first before selecting department'
+            }
+            options={departmentOptions()}
+            value={field.input as { label: string; value: string } | null}
+            onChange={(value) => field.onInput(value)}
             name={field.props.name}
-            validationState={field?.errors?.length ? 'invalid' : 'valid'}
-            value={field.input}
-            onChange={field.onInput}
-          >
-            <TextFieldLabel>Department</TextFieldLabel>
-            <TextFieldInput />
-            <TextFieldErrorMessage>{field?.errors?.[0]}</TextFieldErrorMessage>
-          </TextField>
+            disabled={!selectedDivision()}
+          />
         )}
       </Field>
       <Button type="submit">Submit</Button>

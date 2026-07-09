@@ -3,11 +3,23 @@ import { ColumnDef } from '@tanstack/solid-table';
 import { TableColumnHeader } from '~/components/ui/table-column-header';
 import { TableRowActions } from '~/components/ui/table-row-actions';
 import { createAsync, RouteDefinition } from '@solidjs/router';
-import { User } from '~/generated/prisma/client';
 import { getAllUsers } from '~/server/controller/user.server';
 import { UserRole } from '~/types';
+import { UserGetPayload } from '~/generated/prisma/models/User';
 
-const columns: ColumnDef<Omit<User, 'password'>>[] = [
+const columns: ColumnDef<
+  UserGetPayload<{
+    select: {
+      id: true;
+      name: true;
+      email: true;
+      nik: true;
+      department: true;
+      division: true;
+      ext: true;
+    };
+  }>
+>[] = [
   {
     accessorKey: 'id',
     header: 'Id',

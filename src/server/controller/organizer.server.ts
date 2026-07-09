@@ -3,6 +3,8 @@ import { query } from '@solidjs/router';
 import {
   createOrganizer,
   getOrganizerByNik,
+  getOrganizersByDivisionId,
+  getOrganizersByDepartmentId,
   updateOrganizer,
 } from '~/server/repository/organizer.server';
 
@@ -16,6 +18,20 @@ export const getOrganizerByNikController = query(async (nik: string) => {
 
   return await getOrganizerByNik(nik);
 }, 'getOrganizerByNikController');
+
+export const getOrganizersByDivisionController = query(async (divisionId: string) => {
+  'use server';
+  await validateSession();
+  const organizers = await getOrganizersByDivisionId(divisionId);
+  return { organizers };
+}, 'getOrganizersByDivision');
+
+export const getOrganizersByDepartmentController = query(async (departmentId: string) => {
+  'use server';
+  await validateSession();
+  const organizers = await getOrganizersByDepartmentId(departmentId);
+  return { organizers };
+}, 'getOrganizersByDepartment');
 
 export const createOrUpdateOrganizer = async (organizer: {
   nik: string;
@@ -37,8 +53,8 @@ export const createOrUpdateOrganizer = async (organizer: {
       name: organizer.name,
       email: organizer.email,
       phone: organizer.phone,
-      division: organizer.division,
-      department: organizer.department,
+      divisionId: organizer.division,
+      departmentId: organizer.department,
     });
     organizerId = existingOrganizer.id;
   } else {
@@ -47,8 +63,8 @@ export const createOrUpdateOrganizer = async (organizer: {
       name: organizer.name,
       email: organizer.email,
       phone: organizer.phone,
-      division: organizer.division,
-      department: organizer.department,
+      divisionId: organizer.division,
+      departmentId: organizer.department,
     });
     organizerId = newOrganizer.id;
   }

@@ -29,8 +29,8 @@ export default function usePrefillOrganizerData() {
           organizerName: organizer.name,
           organizerEmail: organizer.email,
           organizerPhone: organizer.phone,
-          organizerDivision: organizer.division ?? '',
-          organizerDepartment: organizer.department ?? '',
+          organizerDivision: organizer.division?.name ?? '',
+          organizerDepartment: organizer.department?.name ?? '',
         });
       } else {
         setOrganizerData(null);

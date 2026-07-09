@@ -85,9 +85,7 @@ function ReservationEvent(
             {props.reservation.room.name} • {props.reservation.organizer.name}
           </span>
           <Show when={props.reservation.organizer.department}>
-            <span class="text-xs text-muted-foreground/80 truncate">
-              {props.reservation.organizer.department}
-            </span>
+            {(data) => <span class="text-xs text-muted-foreground/80 truncate">{data().name}</span>}
           </Show>
         </div>
       </Show>

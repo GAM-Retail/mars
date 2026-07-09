@@ -48,10 +48,9 @@ export default function EditUser() {
         email: data.email,
         name: data.name,
         role: data.role as UserRole,
-        password: (data.password as string) || undefined,
-        ext: (data.ext as string) || undefined,
-        division: (data.division as string) || undefined,
-        department: (data.department as string) || undefined,
+        ext: data.ext || undefined,
+        divisionId: data.division?.value,
+        departmentId: data.department?.value,
       });
       toast('User has been updated', {
         description: `${result.user.name} has been updated successfully.`,
@@ -86,15 +85,25 @@ export default function EditUser() {
         </span>
         <UserForm
           onSubmit={onSubmit}
-          showPassword={false}
+          formType="update"
           initialValues={{
             nik: userResource()?.user.nik,
             name: userResource()?.user.name,
             email: userResource()?.user.email,
             role: userResource()?.user.role,
             ext: userResource()?.user.ext || undefined,
-            division: userResource()?.user.division || undefined,
-            department: userResource()?.user.department || undefined,
+            division: userResource()?.user.division
+              ? {
+                  label: userResource()?.user.division?.name,
+                  value: userResource()?.user.division?.id,
+                }
+              : null,
+            department: userResource()?.user.department
+              ? {
+                  label: userResource()?.user.department?.name,
+                  value: userResource()?.user.department?.id,
+                }
+              : null,
           }}
         />
       </div>
