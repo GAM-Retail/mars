@@ -28,6 +28,10 @@ export default function NewUser() {
   const createUser = useAction(createUserAction);
   const onSubmit = async (data: v.InferInput<typeof UserSchema>) => {
     try {
+      // Formisch's <Form> cannot accept FormStore<CreateSchema> | FormStore<UpdateSchema>
+      // that's why, `password` is optional in the shared schema and validate manually when creating a users.
+      // Ref: https://github.com/open-circle/formisch/issues/152
+      if (!data['password']) throw new Error('Password is required');
       const result = await createUser({
         nik: data.nik,
         email: data.email,
@@ -35,10 +39,10 @@ export default function NewUser() {
         role: data.role as UserRole,
         password: data.password,
         ext: data.ext,
-        division: data.division,
-        department: data.department,
+        divisionId: data.division?.value,
+        departmentId: data.department?.value,
       });
-      toast('User has been created', {
+      toast('Home has been created', {
         description: `${result.user.name} has been created successfully.`,
         action: {
           label: 'Detail',
@@ -61,7 +65,7 @@ export default function NewUser() {
         </A>
         <h2 class="text-xl font-semibold">Create new user</h2>
       </span>
-      <UserForm onSubmit={onSubmit} showPassword />
+      <UserForm onSubmit={onSubmit} formType="create" />
     </div>
   );
 }
