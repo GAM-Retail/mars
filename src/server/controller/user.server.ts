@@ -48,8 +48,8 @@ export const createUserAction = action(
     password: string;
     role: UserRole;
     ext?: string;
-    division?: string;
-    department?: string;
+    divisionId?: string;
+    departmentId?: string;
   }) => {
     'use server';
     await validateSessionWithRole('SUPERADMIN');
@@ -79,8 +79,8 @@ export const updateUserAction = action(
     role?: UserRole;
     password?: string;
     ext?: string;
-    division?: string;
-    department?: string;
+    divisionId?: string;
+    departmentId?: string;
     isProfileUpdate?: boolean;
   }) => {
     'use server';
@@ -125,8 +125,8 @@ export const updateUserAction = action(
       role: currentRole,
       password: values.password,
       ext: values.ext,
-      divisionId: values.division,
-      departmentId: values.department,
+      divisionId: values.divisionId,
+      departmentId: values.departmentId,
     });
 
     return { user: updatedUser };
