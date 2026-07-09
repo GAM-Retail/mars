@@ -36,6 +36,17 @@ export const getById = async (id: string) => {
 
 export const deleteById = async (id: string) => db.division.delete({ where: { id } });
 
+export const getDepartmentsByDivisionId = async (divisionId: string) => {
+  return db.department.findMany({
+    where: {
+      organizations: {
+        some: {
+          divisionId,
+        },
+      },
+    },
+  });
+};
 export const addDepartmentToDivision = async (divisionId: string, departmentId: string) => {
   const existing = await db.organizations.findFirst({
     where: { divisionId: divisionId, departmentId },
