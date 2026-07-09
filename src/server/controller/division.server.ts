@@ -6,6 +6,7 @@ import {
   edit,
   getAll,
   getById,
+  getDepartmentsByDivisionId,
   removeDepartmentFromDivision,
 } from '~/server/repository/division.server';
 import { getAll as getAllDepartments } from '~/server/repository/department.server';
@@ -97,3 +98,12 @@ export const getAllDepartmentsForDivision = query(async () => {
   const departments = await getAllDepartments();
   return { departments };
 }, 'getAllDepartmentsForDivision');
+
+export const getDepartmentsByDivisionIdQuery = query(async (divisionId: string) => {
+  'use server';
+  await validateSession();
+
+  const departments = await getDepartmentsByDivisionId(divisionId);
+
+  return { departments };
+}, 'getDepartmentsByDivisionId');
