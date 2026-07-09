@@ -24,7 +24,7 @@ export default function DetailFacilityDropdown(props: Readonly<{ facility: Facil
   const deleteFacilityAction = useAction(deleteFacility);
 
   const navigate = useNavigate();
-const onDelete = async () => {
+  const onDelete = async () => {
     try {
       await deleteFacilityAction(props.facility.id);
       toast('Facility has been deleted', {
@@ -44,7 +44,11 @@ const onDelete = async () => {
           <Cog class="h-6 w-6" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem as={A} href={`/facility/${props.facility.id}/edit`} onSelect={() => navigate(`/facility/${props.facility.id}/edit`)}>
+          <DropdownMenuItem
+            as={A}
+            href={`/facility/${props.facility.id}/edit`}
+            onSelect={() => navigate(`/facility/${props.facility.id}/edit`)}
+          >
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem
