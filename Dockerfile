@@ -8,6 +8,7 @@ WORKDIR /app
 # Install dependencies
 FROM base AS deps
 
+ENV CI=true
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
