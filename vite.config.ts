@@ -4,15 +4,6 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [tailwindcss(), reactRouter()],
-  environments: {
-    ssr: {
-      build: {
-        rollupOptions: {
-          input: './server/app.ts',
-        },
-      },
-    },
-  },
   ssr: { external: ['@prisma/client'] },
   build: {
     target: 'esnext',
