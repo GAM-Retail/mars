@@ -54,4 +54,4 @@ USER reactrouter
 
 EXPOSE 3000
 
-CMD ["pnpm", "start"]
+CMD ["npm", "run", "start"]
