@@ -1,12 +1,23 @@
 import { defineConfig } from 'vite';
-import { nitroV2Plugin as nitro } from '@solidjs/vite-plugin-nitro-2';
-import { solidStart } from '@solidjs/start/config';
+import { reactRouter } from '@react-router/dev/vite';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [tailwindcss(), solidStart(), nitro()],
+  plugins: [tailwindcss(), reactRouter()],
+  environments: {
+    ssr: {
+      build: {
+        rollupOptions: {
+          input: './server/app.ts',
+        },
+      },
+    },
+  },
   ssr: { external: ['@prisma/client'] },
   build: {
     target: 'esnext',
+  },
+  resolve: {
+    tsconfigPaths: true,
   },
 });

@@ -1,13 +1,8 @@
-dist
-.wrangler
-.output
-.vercel
-.netlify
-.vinxi
-.nitro
-app.config.timestamp_*.js
-
-# Environment
+node_modules
+.react-router
+/app/generated
+build
+*.log
 .env
 .env*.local
 
@@ -27,6 +22,3 @@ gitignore
 # System Files
 .DS_Store
 Thumbs.db
-
-# Prisma
-/src/generated
