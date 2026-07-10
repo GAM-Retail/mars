@@ -1,10 +1,10 @@
 # MARS - Meeting Area Reservation System
 
-A web application for managing meeting rooms and reservations. Built with [SolidStart](https://docs.solidjs.com/solid-start/) and [SolidJS](https://docs.solidjs.com/).
+A web application for managing meeting rooms and reservations. Built with [ReactRouter](https://reactrouter.com/home).
 
 ## Tech Stack
 
-- **Framework**: SolidStart 2.0 (SolidJS)
+- **Framework**: ReactRouter 8
 - **Database**: MySQL (via Prisma ORM)
 - **Styling**: Tailwind CSS + Shadcn UI
 - **Package Manager**: pnpm
@@ -76,10 +76,10 @@ The app will be available at `http://localhost:3000`.
 pnpm build
 ```
 
-The build output will be in `.output/` directory. To run the production build:
+The build output will be in `build/` directory. To run the production build:
 
 ```bash
-node .output/server/index.mjs
+pnpm preview
 ```
 
 ## Docker Deployment
