@@ -2,10 +2,9 @@
   "name": "mars",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "start": "vite start",
-    "preview": "vite preview",
+    "build": "react-router build",
+    "dev": "react-router dev",
+    "start": "react-router-serve ./build/server/index.js",
     "typecheck": "tsc --noEmit",
     "postinstall": "pnpm prisma generate"
   },
@@ -28,6 +27,7 @@
     "@radix-ui/react-slot": "^1.3.0",
     "@radix-ui/react-tooltip": "^1.2.12",
     "@react-router/node": "^8.2.0",
+    "@react-router/serve": "^8.2.0",
     "@tanstack/react-table": "^8.21.3",
     "argon2": "^0.44.0",
     "class-variance-authority": "^0.7.1",
