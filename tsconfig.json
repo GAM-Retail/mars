@@ -5,15 +5,15 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "jsx": "preserve",
-    "jsxImportSource": "solid-js",
+    "jsx": "react-jsx",
     "allowJs": true,
     "strict": true,
     "noEmit": true,
     "types": ["vite/client", "node"],
     "isolatedModules": true,
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./app/*"]
     }
-  }
+  },
+  "include": ["app", "react-router.config.ts", "vite.config.ts"]
 }
