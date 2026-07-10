@@ -16,4 +16,18 @@ export default defineConfig([
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
   eslintPluginPrettierRecommended,
+  {
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
 ]);
