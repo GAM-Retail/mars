@@ -44,7 +44,7 @@ ENV HOST=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 reactrouter && chown -R reactrouter:nodejs /app
 
 COPY --chown=reactrouter:nodejs --from=builder /app/node_modules ./node_modules
-COPY --chown=reactrouter:nodejs --from=builder /app/build ./dist
+COPY --chown=reactrouter:nodejs --from=builder /app/build ./build
 COPY --chown=reactrouter:nodejs --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --chown=reactrouter:nodejs --from=builder /app/prisma ./prisma
 COPY --chown=reactrouter:nodejs --from=builder /app/public ./public
