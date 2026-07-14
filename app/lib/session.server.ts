@@ -2,6 +2,11 @@ import { createCookieSessionStorage } from 'react-router';
 import db from '~/lib/db';
 import { UserRole } from '~/types';
 
+const sessionSecret = process.env.SESSION_SECRET;
+
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET is required');
+}
 
 type SessionFlashData = {
   error: string;
@@ -19,8 +24,8 @@ const { getSession, commitSession, destroySession } = createCookieSessionStorage
     maxAge: 604800,
     path: '/',
     sameSite: 'lax',
-    secrets: ['s3cret1'],
-    secure: true,
+    secrets: [sessionSecret],
+    secure: process.env.COOKIE_SECURE === 'true',
   },
 });
 
