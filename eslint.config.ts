@@ -1,33 +1,46 @@
+import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
-import pluginReact from 'eslint-plugin-react';
-import { defineConfig } from 'eslint/config';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-
+import reactHooks from 'eslint-plugin-react-hooks';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 export default defineConfig([
   {
-    files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    plugins: { js },
-    extends: ['js/recommended'],
-    languageOptions: { globals: globals.browser },
+    ignores: ['build', 'dist', '.react-router', 'coverage', 'node_modules'],
   },
+  js.configs.recommended,
   tseslint.configs.recommended,
-  pluginReact.configs.flat.recommended,
-  pluginReact.configs.flat['jsx-runtime'],
-  eslintPluginPrettierRecommended,
+  reactHooks.configs.flat.recommended,
+  eslintConfigPrettier,
   {
-    rules: {
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        {
-          varsIgnorePattern: '^_',
-          argsIgnorePattern: '^_',
-          caughtErrorsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_',
-        },
-      ],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+      // typescript-eslint still not support TS 7
+      // @see: https://github.com/typescript-eslint/typescript-eslint/issues/12521
+      // parserOptions: {
+      //   projectService: true,
+      // },
     },
+
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
+    // rules: {
+    //   'no-unused-vars': 'off',
+    //   '@typescript-eslint/no-unused-vars': [
+    //     'warn',
+    //     {
+    //       varsIgnorePattern: '^_',
+    //       argsIgnorePattern: '^_',
+    //       caughtErrorsIgnorePattern: '^_',
+    //       destructuredArrayIgnorePattern: '^_',
+    //     },
+    //   ],
+    // },
   },
 ]);
