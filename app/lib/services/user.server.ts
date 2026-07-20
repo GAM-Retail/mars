@@ -1,7 +1,6 @@
 import db from '~/lib/db';
 import { hashPassword, verifyPassword } from '~/lib/hash.server';
 import { validateSession, validateSessionWithRole } from '~/lib/session.server';
-import { UserRole } from '~/generated/prisma/enums';
 
 import type { CreateUserDTO, UpdateUserDTO } from '~/lib/services/types';
 
@@ -51,34 +50,52 @@ export async function updateUser(data: UpdateUserDTO) {
   });
 }
 
-export async function deleteUser(id: string) {
+export async function deleteUser(id: string, actorId: string) {
+  // remove user as room person in charge
+  await db.roomPersonInCharge.deleteMany({ where: { personInChargeId: id } });
+
+  // delete user reservations
+  const { reservationIds } = await checkUserActiveReservations(id);
+  await db.roomReservation.updateMany({
+    where: {
+      reservedById: id,
+      id: {
+        notIn: reservationIds.map(({ id }) => id),
+      },
+    },
+    data: {
+      reservedById: actorId,
+    },
+  });
   return db.user.delete({ where: { id } });
 }
 
-export async function checkUserCanBeDeleted(id: string) {
-  const hasReservations =
-    (await db.roomReservation.count({
-      where: { reservedById: id, deletedAt: null },
-    })) > 0;
-  const isRoomPic =
-    (await db.roomPersonInCharge.count({
-      where: { personInChargeId: id },
-    })) > 0;
-  return { hasReservations, isRoomPic };
-}
-
-export async function hardDeleteReservationsByUser(userId: string) {
-  return db.roomReservation.deleteMany({
-    where: { reservedById: userId, deletedAt: { not: null } },
+// Active reservations mean that the reservation is not started yet
+export async function checkUserActiveReservations(id: string) {
+  const reservationIds = await db.roomReservation.findMany({
+    where: {
+      reservedById: id,
+      endTime: {
+        gte: new Date(),
+      },
+    },
+    select: { id: true },
   });
+  return { reservationIds, hasReservations: reservationIds.length > 0 };
 }
 
 export async function getUsersByDivisionId(divisionId: string) {
   return db.user.findMany({
     where: { divisionId },
     select: {
-      id: true, nik: true, email: true, name: true, role: true,
-      createdAt: true, updatedAt: true, ext: true,
+      id: true,
+      nik: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+      ext: true,
     },
     orderBy: { name: 'asc' },
   });
@@ -88,86 +105,17 @@ export async function getUsersByDepartmentId(departmentId: string) {
   return db.user.findMany({
     where: { departmentId },
     select: {
-      id: true, nik: true, email: true, name: true, role: true,
-      createdAt: true, updatedAt: true, ext: true,
+      id: true,
+      nik: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+      ext: true,
     },
     orderBy: { name: 'asc' },
   });
-}
-
-export async function getAllUsers(request: Request) {
-  await validateSessionWithRole('SUPERADMIN', request);
-  return db.user.findMany({
-    select: {
-      id: true, nik: true, email: true, name: true, role: true,
-      createdAt: true, updatedAt: true, ext: true,
-      division: true, department: true,
-    },
-    orderBy: { name: 'asc' },
-  });
-}
-
-export async function getUserByIdController(request: Request, id: string) {
-  await validateSessionWithRole('SUPERADMIN', request);
-  if (!id) throw new Error('Id is required');
-  const user = await getUserById(id);
-  if (!user) throw new Error('User does not exist');
-  return { user };
-}
-
-export async function createUserAction(request: Request, values: CreateUserDTO) {
-  await validateSessionWithRole('SUPERADMIN', request);
-  const existingNik = await db.user.findUnique({ where: { nik: values.nik } });
-  if (existingNik) throw new Error('NIK already exists');
-  const existingEmail = await db.user.findUnique({ where: { email: values.email } });
-  if (existingEmail) throw new Error('Email already exists');
-  const newUser = await createUser(values);
-  return { user: newUser };
-}
-
-export async function updateUserAction(
-  request: Request,
-  values: UpdateUserDTO & { isProfileUpdate?: boolean },
-) {
-  const userId = await validateSession(request);
-  const existingUser = await getUserById(values.id);
-  if (!existingUser) throw new Error('User does not exist');
-  let currentRole: UserRole;
-  if (values.isProfileUpdate) {
-    if (values.id !== userId) throw new Error('You can only update your own profile');
-    currentRole = existingUser.role;
-  } else {
-    await validateSessionWithRole('SUPERADMIN', request);
-    currentRole = values.role!;
-  }
-  const existingNik = await db.user.findUnique({
-    where: { nik: values.nik, NOT: { id: values.id } },
-  });
-  if (existingNik) throw new Error('NIK already exists');
-  const existingEmail = await db.user.findUnique({
-    where: { email: values.email, NOT: { id: values.id } },
-  });
-  if (existingEmail) throw new Error('Email already exists');
-  const updatedUser = await updateUser({ ...values, role: currentRole });
-  return { user: updatedUser };
-}
-
-export async function deleteUserAction(request: Request, id: string) {
-  await validateSessionWithRole('SUPERADMIN', request);
-  const existingUser = await getUserById(id);
-  if (!existingUser) throw new Error('User does not exist');
-  const { hasReservations, isRoomPic } = await checkUserCanBeDeleted(id);
-  if (hasReservations)
-    throw new Error(
-      'Cannot delete users with active reservations. Please remove reservations first.',
-    );
-  if (isRoomPic)
-    throw new Error(
-      'Cannot delete users who is a person in charge of a rooms. Please reassign the rooms first.',
-    );
-  await hardDeleteReservationsByUser(id);
-  await deleteUser(id);
-  return { success: true };
 }
 
 export async function changePasswordAction(
@@ -178,16 +126,13 @@ export async function changePasswordAction(
   if (values.id !== userId) throw new Error('You can only change your own password');
   const user = await getUserById(values.id, { includeSensitive: true });
   if (!user) throw new Error('User does not exist');
-  const isValid = await verifyPassword(values.currentPassword, (user as unknown as { password: string }).password);
+  const isValid = await verifyPassword(
+    values.currentPassword,
+    (user as unknown as { password: string }).password,
+  );
   if (!isValid) throw new Error('Current password is incorrect');
   await changeUserPassword(user.id, values.newPassword);
   return { success: true };
-}
-
-export async function getUsersByDivisionController(request: Request, divisionId: string) {
-  await validateSession(request);
-  const users = await getUsersByDivisionId(divisionId);
-  return { users };
 }
 
 export async function getUsersByDepartmentController(request: Request, departmentId: string) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLoaderData, useFetcher, Link, useNavigate } from 'react-router';
+import { useLoaderData, useFetcher, Link, useNavigate, replace } from 'react-router';
 import { CalendarPlus, Cog, Mail, Phone, Building2, Shield, User as UserIcon } from 'lucide-react';
 import {
   DropdownMenu,
@@ -10,8 +10,11 @@ import {
 import { Button } from '~/components/ui/button';
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogTitle,
 } from '~/components/ui/alert-dialog';
 import { Badge } from '~/components/ui/badge';
@@ -20,39 +23,51 @@ import { toast } from 'sonner';
 import {
   getUserById,
   deleteUser,
-  checkUserCanBeDeleted,
-  hardDeleteReservationsByUser,
+  checkUserActiveReservations,
+  resetPasswordAction,
 } from '~/lib/services/user.server';
 import { requireSuperAdmin } from '~/lib/current-user.server';
 import { catchResult } from '~/lib/error/response.server';
+import { Label } from '~/components/ui/label';
+import { Input } from '~/components/ui/input';
+import type { Route } from './+types/id';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '~/components/ui/dialog';
 
-export async function loader({ request, params }: { request: Request; params: { id: string } }) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   await requireSuperAdmin(request);
   const user = await getUserById(params.id);
   if (!user) throw new Error('User does not exist');
   return { user };
 }
 
-export async function action({ request, params }: { request: Request; params: { id: string } }) {
+export async function action({ request, params }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get('intent') as string;
   try {
-    await requireSuperAdmin(request);
+    const actor = await requireSuperAdmin(request);
     const existingUser = await getUserById(params.id);
     if (!existingUser) return { success: false, message: 'User does not exist' };
-    const { hasReservations, isRoomPic } = await checkUserCanBeDeleted(params.id);
+    if (intent === 'reset-password') {
+      await resetPasswordAction(request, {
+        id: params.id,
+        newPassword: formData.get('newPassword') as string,
+      });
+      return { success: true, intent: 'reset-password' };
+    }
+    const { hasReservations } = await checkUserActiveReservations(params.id);
     if (hasReservations)
       return {
         success: false,
         message: 'Cannot delete users with active reservations. Please remove reservations first.',
       };
-    if (isRoomPic)
-      return {
-        success: false,
-        message:
-          'Cannot delete users who is a person in charge of a rooms. Please reassign the rooms first.',
-      };
-    await hardDeleteReservationsByUser(params.id);
-    await deleteUser(params.id);
-    return { success: true };
+    await deleteUser(params.id, actor.id);
+    return replace('/users');
   } catch (err) {
     return catchResult(err);
   }
@@ -63,15 +78,22 @@ export default function UserDetails() {
   const fetcher = useFetcher();
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const isSubmitting = fetcher.state !== 'idle';
 
   useEffect(() => {
     if (fetcher.data?.success) {
-      toast.success('Home has been deleted');
-      navigate('/users');
+      if (fetcher.data.intent === 'reset-password') {
+        toast.success('Password has been reset');
+        setPasswordOpen(false);
+      } else {
+        toast.success('User has been deleted');
+      }
+    }
+    if (!fetcher.data?.success && fetcher.data?.message) {
+      toast.error('Failed to delete', { description: fetcher.data?.message });
     }
   }, [fetcher.data, navigate]);
-
-  const isDeleting = fetcher.state !== 'idle';
 
   return (
     <div className="mt-10 px-4 flex flex-col gap-6">
@@ -111,6 +133,9 @@ export default function UserDetails() {
             <DropdownMenuContent>
               <DropdownMenuItem asChild>
                 <Link to={`/users/${user.id}/edit`}>Edit</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
+                Reset Password
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
@@ -224,24 +249,59 @@ export default function UserDetails() {
           <AlertDialogTitle>Delete {user.name}</AlertDialogTitle>
           <AlertDialogDescription>
             <p>Are you sure you want to delete this user? This action cannot be undone.</p>
-            <div className="flex flex-col gap-2 mt-2">
-              <Button
-                variant="destructive"
-                className="w-full text-white"
-                disabled={isDeleting}
-                onClick={() => {
-                  fetcher.submit(null, { method: 'post' });
-                }}
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
+          </AlertDialogDescription>
+          <AlertDialogFooter>
+            <AlertDialogCancel variant="outline" onClick={() => setDeleteOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isSubmitting}
+              onClick={() => {
+                fetcher.submit(null, { method: 'post' });
+              }}
+            >
+              {isSubmitting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              You are about to reset the password for <b>{user.name}</b>.
+            </DialogDescription>
+          </DialogHeader>
+          <fetcher.Form method="post" className="flex flex-col gap-4">
+            <input type="hidden" name="intent" value="reset-password" />
+            <div className="grid gap-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                required
+                minLength={6}
+                placeholder="Min 6 characters"
+              />
+            </div>
+            {!fetcher.data?.success && fetcher.data?.message && (
+              <p className="text-sm text-destructive">{fetcher.data?.message}</p>
+            )}
+            <div className="flex gap-2">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Resetting...' : 'Reset Password'}
               </Button>
-              <Button variant="outline" className="w-full" onClick={() => setDeleteOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => setPasswordOpen(false)}>
                 Cancel
               </Button>
             </div>
-          </AlertDialogDescription>
-        </AlertDialogContent>
-      </AlertDialog>
+          </fetcher.Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
