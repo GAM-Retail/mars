@@ -1,7 +1,6 @@
 import { Link, useLoaderData } from 'react-router';
 import { DataTable } from '~/components/DataTable';
 import { TableColumnHeader } from '~/components/ui/table-column-header';
-import { TableRowActions } from '~/components/ui/table-row-actions';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { DepartmentModel } from '~/generated/prisma/models';
 
@@ -35,7 +34,11 @@ const columns: ColumnDef<DepartmentModel>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => <TableRowActions row={row} />,
+    cell: ({ row }) => (
+      <Button variant="ghost" size="sm" asChild>
+        <Link to={`/departments/${row.original.id}`}>Detail</Link>
+      </Button>
+    ),
   },
 ];
 
