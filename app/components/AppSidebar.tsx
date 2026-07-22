@@ -23,7 +23,6 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { UserRole } from '~/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +33,7 @@ import {
 } from '~/components/ui/dropdown-menu';
 import { useCurrentUser } from '~/hooks/useCurrentUser';
 import { ModeToggle } from '~/components/ModeToggle';
+import { UserRole } from '~/generated/prisma/enums';
 
 type SidebarItem = {
   groupName: string;
