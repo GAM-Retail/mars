@@ -103,6 +103,20 @@
   --sidebar-accent-foreground: oklch(0.218 0.008 223.9);
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
+  --button-radius: calc(var(--radius) * 0.8);
+  --button-py: 10px;
+  --button-px: 14px;
+  --button-px-icon: 12px;
+  --button-gap: 6px;
+  --button-size: calc(var(--button-py) * 2 + 1.25rem);
+  --button-py-sm: 8px;
+  --button-px-sm: 12px;
+  --button-px-icon-sm: 10px;
+  --button-size-sm: calc(var(--button-py-sm) * 2 + 1rem);
+  --button-py-lg: 12px;
+  --button-px-lg: 18px;
+  --button-px-icon-lg: 14px;
+  --button-size-lg: calc(var(--button-py-lg) * 2 + 1.25rem);
 }
 
 .dark {
@@ -180,4 +194,18 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --button-size-lg: var(--button-size-lg);
+  --button-px-icon-lg: var(--button-px-icon-lg);
+  --button-px-lg: var(--button-px-lg);
+  --button-py-lg: var(--button-py-lg);
+  --button-size-sm: var(--button-size-sm);
+  --button-px-icon-sm: var(--button-px-icon-sm);
+  --button-px-sm: var(--button-px-sm);
+  --button-py-sm: var(--button-py-sm);
+  --button-size: var(--button-size);
+  --button-gap: var(--button-gap);
+  --button-px-icon: var(--button-px-icon);
+  --button-px: var(--button-px);
+  --button-py: var(--button-py);
+  --button-radius: var(--button-radius);
 }
