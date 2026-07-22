@@ -14,7 +14,7 @@ export async function loader({ request }: { request: Request }) {
   const user = await requireAdminOrSuperAdmin(request);
   const [rooms, reservations] = await Promise.all([
     user.role === 'SUPERADMIN' ? getAllRoomsData() : getRoomsByPersonInChargeQuery(user.id),
-    user.role === 'SUPERADMIN' ? getAllReservations() : getReservationsByPersonInCharge(user.id),
+    user.role === 'SUPERADMIN' ? getAllReservations() : getReservationsByPersonInCharge(user),
   ]);
 
   return {
@@ -45,13 +45,7 @@ export default function Dashboard() {
           />
         )}
       </div>
-      {reservations.length === 0 ? (
-        <div className="flex h-60 items-center justify-center text-muted-foreground">
-          Loading...
-        </div>
-      ) : (
-        <ReservationCalendar reservations={filteredReservations} className="min-h-[80vh] w-full" />
-      )}
+      <ReservationCalendar reservations={filteredReservations} className="min-h-[80vh] w-full" />
     </div>
   );
 }
