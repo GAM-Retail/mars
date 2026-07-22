@@ -1,10 +1,8 @@
-import { useEffect } from 'react';
-import { Form, useActionData, useNavigation, useLoaderData, redirect, Link } from 'react-router';
+import { Form, useNavigation, useLoaderData, redirect, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getDivisionById, updateDivision } from '~/lib/services/division.server';
 import { getCurrentUser } from '~/lib/current-user.server';
@@ -22,22 +20,14 @@ export async function action({ request, params }: { request: Request; params: { 
     const result = await updateDivision({ name: formData.get('name') as string, id: params.id });
     return redirect(`/divisions/${result.id}`);
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function EditDivision() {
   const { division } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
-  const actionError = actionData && 'message' in actionData ? actionData.message : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to update division', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:min-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
@@ -59,7 +49,6 @@ export default function EditDivision() {
             placeholder="Home name"
           />
         </div>
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting} className="w-fit">
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>
