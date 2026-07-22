@@ -21,6 +21,7 @@ interface NotificationConfig {
 // let cachedToken: CachedToken | null = null;
 
 import { logger } from '~/lib/logger.server';
+import { CurrentUser } from '~/lib/current-user.server';
 
 function consoleLog(level: 'info' | 'warn' | 'error', message: string, data?: unknown) {
   logger[level](`[NOTIFICATION] ${message}`, data);
@@ -172,7 +173,7 @@ export async function sendReservationNotification(
 ): Promise<boolean> {
   const { reservationId, reservationLogId, status, currentUser } = options;
 
-  const reservation = await getReservationById(reservationId);
+  const reservation = await getReservationById(currentUser as CurrentUser, reservationId);
   if (!reservation) {
     consoleLog('error', 'Reservation not found for notification', { reservationId });
     return false;
