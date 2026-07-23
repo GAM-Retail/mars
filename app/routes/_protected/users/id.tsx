@@ -69,7 +69,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     await deleteUser(params.id, actor.id);
     return replace('/users');
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 

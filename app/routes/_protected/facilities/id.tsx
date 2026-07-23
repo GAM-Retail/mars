@@ -41,7 +41,7 @@ export async function action({ request, params }: { request: Request; params: { 
     await deleteFacilityById(params.id);
     return { deleted: true };
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
