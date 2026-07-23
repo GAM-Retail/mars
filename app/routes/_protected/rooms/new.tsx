@@ -1,15 +1,14 @@
-import { useEffect } from 'react';
-import { Form, useActionData, useNavigation, redirect, Link } from 'react-router';
+import { Form, useNavigation, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Textarea } from '~/components/ui/textarea';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getCurrentUser } from '~/lib/current-user.server';
 import { createRoom } from '~/lib/services/room.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
@@ -22,26 +21,19 @@ export async function action({ request }: { request: Request }) {
       description: (formData.get('description') as string) || undefined,
       createdBy: user.id,
     });
-    return redirect(`/rooms/${result.id}`);
+    return redirectWithToast(request, `/rooms/${result.id}`, {
+      type: 'success',
+      title: 'Room created',
+      description: 'Room has been created successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function NewRoom() {
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
-  const actionError =
-    actionData && !(actionData instanceof Response)
-      ? ((actionData as Record<string, unknown>).message as string)
-      : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to create rooms', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:max-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
@@ -76,7 +68,6 @@ export default function NewRoom() {
           <Label htmlFor="description">Description</Label>
           <Textarea id="description" name="description" placeholder="Home description" />
         </div>
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>
