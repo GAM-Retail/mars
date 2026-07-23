@@ -1,10 +1,8 @@
-import { useEffect } from 'react';
 import { Form, useActionData, useNavigation, useLoaderData, redirect, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import {
   getFacilityById,
@@ -34,7 +32,7 @@ export async function action({ request, params }: { request: Request; params: { 
     });
     return redirect(`/facilities/${result.id}`);
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
@@ -47,12 +45,6 @@ export default function EditFacility() {
     actionData && !(actionData instanceof Response)
       ? ((actionData as Record<string, unknown>).message as string)
       : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to update facilities', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:min-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
