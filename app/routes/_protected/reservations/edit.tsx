@@ -1,4 +1,4 @@
-import { useLoaderData, redirect, Link, useParams } from 'react-router';
+import { useLoaderData, Link, useParams } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { usePrefillOrganizerData } from '~/hooks/usePrefillOrganizerData';
 import ReservationForm from '~/routes/_protected/reservations/components/ReservationForm';
@@ -8,11 +8,12 @@ import { getCurrentUser } from '~/lib/current-user.server';
 import { getAllRoomsData, getRoomsByPersonInChargeQuery } from '~/lib/services/room.server';
 import { getOrganizationData } from '~/lib/services/division.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function loader({ request, params }: { request: Request; params: { id: string } }) {
   const user = await getCurrentUser(request);
   const [reservationResult, rooms, orgData] = await Promise.all([
-    getReservationById(params.id),
+    getReservationById(user, params.id),
     user.role === 'SUPERADMIN' ? getAllRoomsData() : getRoomsByPersonInChargeQuery(user.id),
     getOrganizationData(),
   ]);
@@ -58,9 +59,13 @@ export async function action({ request, params }: { request: Request; params: { 
       organizerDepartment: (formData.get('organizerDepartment') as string) || undefined,
       agenda: (formData.get('agenda') as string) || undefined,
     });
-    return redirect(`/reservations/${result.reservation.id}`);
+    return redirectWithToast(request, `/reservations/${result.reservation.id}`, {
+      type: 'info',
+      title: 'Reservation updated',
+      description: 'Reservation has been updated successfully',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
