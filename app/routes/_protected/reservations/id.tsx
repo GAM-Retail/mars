@@ -54,7 +54,7 @@ export async function loader({ request, params }: { request: Request; params: { 
       { status: 404, statusText: 'Reservation not Found' },
     );
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await isPersonInCharge(user.id, reservation.roomId);
+    const isPic = await isPersonInCharge(user, reservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   const logs = await getReservationLogsController(request, params.id);
