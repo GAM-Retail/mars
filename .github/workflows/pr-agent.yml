@@ -1,0 +1,55 @@
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  issue_comment:
+jobs:
+  pr_agent_job:
+    if: ${{ github.event.sender.type != 'Bot' && ( github.event_name == 'issue_comment' || github.event.pull_request.draft == false)}}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    name: Run pr agent on every pull request, respond to user comments
+    steps:
+      - name: PR Agent action step
+        id: pragent
+        uses: the-pr-agent/pr-agent@main
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Language-specific settings
+          pr_reviewer.extra_instructions: |
+            Focus on:
+            - correctness
+            - TypeScript type safety
+            - React Router 8 patterns
+            - async bugs and race conditions
+            - security vulnerabilities
+            - SQL and database correctness
+            - performance
+            - maintainability
+            
+            Prioritize bugs over style.
+            Avoid suggesting refactors unless they clearly improve readability or correctness.
+            Do not recommend adding dependencies unless necessary.
+          pr_code_suggestions.num_code_suggestions: "4"
+          pr_code_suggestions.suggestions_score_threshold: "8"
+          # Enable/disable automatic tools
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_improve: "false"
+          # Configure which PR events trigger the action
+          github_action_config.pr_actions: '[
+            "opened",
+            "reopened",
+            "ready_for_review",
+            "synchronize"]'
+          # Optimize for large PRs
+          config.large_patch_policy: "clip"
+          config.max_model_tokens: "32000"
+          config.patch_extra_lines_before: "3"
+          config.patch_extra_lines_after: "1"
+          config.restricted_mode: "true"
+          config.model: "gpt-4.1-mini"
+          config.fallback_models: '["gpt-5-mini"]'
