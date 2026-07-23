@@ -36,7 +36,7 @@ export async function loader({ request }: { request: Request }) {
   const [reservationsData, rooms] = await Promise.all([
     user.role === 'SUPERADMIN'
       ? getReservationsByRoomIds('all')
-      : getReservationsByPersonInCharge(user.id),
+      : getReservationsByPersonInCharge(user),
     user.role === 'SUPERADMIN' ? getAllRoomsData() : getRoomsByPersonInChargeQuery(user.id),
   ]);
 
