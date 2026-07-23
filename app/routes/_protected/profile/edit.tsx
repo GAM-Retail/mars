@@ -1,10 +1,8 @@
-import { useEffect } from 'react';
 import { Form, useLoaderData, useActionData, useNavigation, redirect, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getCurrentUser } from '~/lib/current-user.server';
 import { updateUser } from '~/lib/services/user.server';
@@ -38,7 +36,7 @@ export async function action({ request }: { request: Request }) {
     });
     return redirect(`/profile`);
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
@@ -48,15 +46,9 @@ export default function EditProfile() {
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
   const actionError =
-    actionData && !(actionData instanceof Response)
+    actionData && !actionData
       ? ((actionData as Record<string, unknown>).message as string)
       : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to update profile', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:max-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
