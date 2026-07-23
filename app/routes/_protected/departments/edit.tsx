@@ -1,4 +1,4 @@
-import { Form, useNavigation, useLoaderData, redirect, Link } from 'react-router';
+import { Form, useNavigation, useLoaderData, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getDepartmentById, updateDepartment } from '~/lib/services/department.server';
 import { getCurrentUser } from '~/lib/current-user.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function loader({ params }: { params: { id: string } }) {
   const data = await getDepartmentById(params.id);
@@ -18,7 +19,11 @@ export async function action({ request, params }: { request: Request; params: { 
   try {
     await getCurrentUser(request);
     const result = await updateDepartment({ name: formData.get('name') as string, id: params.id });
-    return redirect(`/departments/${result.id}`);
+    return redirectWithToast(request, `/departments/${result.id}`, {
+      type: 'success',
+      title: 'Department updated',
+      description: 'Department has been updated successfully.',
+    });
   } catch (err) {
     return catchResult(request, err);
   }
