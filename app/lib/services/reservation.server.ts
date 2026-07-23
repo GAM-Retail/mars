@@ -2,7 +2,7 @@ import db from '~/lib/db';
 import { dateTimeBuilder, validateSessionWithRole } from '~/lib/session.server';
 
 import { createOrUpdateOrganizer } from '~/lib/services/organizer.server';
-import { validateRoomPersonInCharge } from '~/lib/services/room.server';
+import { isPersonInCharge } from '~/lib/services/room.server';
 import { CurrentUser, requireAdminOrSuperAdmin } from '~/lib/current-user.server';
 import { sendReservationNotification } from '~/lib/notification.server';
 import { NotificationStatus, ReservationAction } from '~/generated/prisma/enums';
@@ -188,7 +188,7 @@ export async function createReservationAction(
 ) {
   const user = await requireAdminOrSuperAdmin(request);
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, values.roomId);
+    const isPic = await isPersonInCharge(user, values.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   const date = values.date.split('T')[0];
@@ -258,7 +258,7 @@ export async function updateReservationAction(
   if (existingReservation.deletedAt) throw new Error('Cannot edit deleted reservations');
   if (existingReservation.endTime < new Date()) throw new Error('Cannot edit past reservations');
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, existingReservation.roomId);
+    const isPic = await isPersonInCharge(user, existingReservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   const startTime = dateTimeBuilder(values.date, values.startTime);
@@ -324,7 +324,7 @@ export async function deleteReservationAction(request: Request, id: string) {
   if (existingReservation.deletedAt) throw new Error('Reservation is already deleted');
   if (existingReservation.endTime < new Date()) throw new Error('Cannot delete past reservations');
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, existingReservation.roomId);
+    const isPic = await isPersonInCharge(user, existingReservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   await deleteReservation(id);
