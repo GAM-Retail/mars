@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Form, useLoaderData, useActionData, useNavigation, redirect, Link } from 'react-router';
+import { useState } from 'react';
+import { Form, useLoaderData, useNavigation, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -11,12 +11,12 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getUserById, updateUser } from '~/lib/services/user.server';
 import { getOrganizationData } from '~/lib/services/division.server';
 import { requireSuperAdmin } from '~/lib/current-user.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 import OrganizationCombobox from '~/components/OrganizationCombobox';
 
 export async function loader({ request, params }: { request: Request; params: { id: string } }) {
@@ -43,29 +43,22 @@ export async function action({ request, params }: { request: Request; params: { 
       divisionId: (formData.get('divisionId') as string) || undefined,
       departmentId: (formData.get('departmentId') as string) || undefined,
     });
-    return redirect(`/users/${result.id}`);
+    return redirectWithToast(request, `/users/${result.id}`, {
+      type: 'success',
+      title: 'User updated',
+      description: 'User has been updated successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function EditUser() {
   const { user, divisions, departmentsByDivision } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
   const [selectedDivisionId, setSelectedDivisionId] = useState(user.divisionId ?? '');
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(user.departmentId ?? '');
-  const actionError =
-    actionData && !(actionData instanceof Response)
-      ? ((actionData as Record<string, unknown>).message as string)
-      : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to update users', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:max-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
@@ -117,7 +110,6 @@ export default function EditUser() {
           onDivisionChange={setSelectedDivisionId}
           onDepartmentChange={setSelectedDepartmentId}
         />
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>
