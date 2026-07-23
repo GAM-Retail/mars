@@ -1,14 +1,13 @@
-import { useEffect } from 'react';
-import { Form, useLoaderData, useActionData, useNavigation, redirect, Link } from 'react-router';
+import { Form, useLoaderData, useNavigation, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getCurrentUser } from '~/lib/current-user.server';
 import { updateUser } from '~/lib/services/user.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 import db from '~/lib/db';
 
 export async function loader({ request }: { request: Request }) {
@@ -36,27 +35,20 @@ export async function action({ request }: { request: Request }) {
       role: user.role,
       ext: (formData.get('ext') as string) || undefined,
     });
-    return redirect(`/profile`);
+    return redirectWithToast(request, '/profile', {
+      type: 'success',
+      title: 'Profile updated',
+      description: 'Your profile has been updated successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function EditProfile() {
   const { user } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
-  const actionError =
-    actionData && !(actionData instanceof Response)
-      ? ((actionData as Record<string, unknown>).message as string)
-      : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to update profile', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:max-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
@@ -96,7 +88,6 @@ export default function EditProfile() {
             {user.departmentId || '-'}
           </p>
         </div>
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>

@@ -31,7 +31,7 @@ import { getCurrentUser, requireSuperAdmin } from '~/lib/current-user.server';
 import { catchResult } from '~/lib/error/response.server';
 import db from '~/lib/db';
 
-export async function loader({ request, params }: { request: Request; params: { id: string } }) {
+export async function loader({ params }: { request: Request; params: { id: string } }) {
   const [roomResult, facilitiesResult, allUsers] = await Promise.all([
     getRoomById(params.id),
     getAllFacilitiesForRoom(),
@@ -94,7 +94,7 @@ export async function action({ request, params }: { request: Request; params: { 
     }
     return { success: false };
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 

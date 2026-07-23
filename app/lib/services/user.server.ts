@@ -1,5 +1,5 @@
 import db from '~/lib/db';
-import { hashPassword, verifyPassword } from '~/lib/hash.server';
+import { hashPassword } from '~/lib/hash.server';
 import { validateSession, validateSessionWithRole } from '~/lib/session.server';
 
 import type { CreateUserDTO, UpdateUserDTO } from '~/lib/services/types';
@@ -116,23 +116,6 @@ export async function getUsersByDepartmentId(departmentId: string) {
     },
     orderBy: { name: 'asc' },
   });
-}
-
-export async function changePasswordAction(
-  request: Request,
-  values: { id: string; currentPassword: string; newPassword: string },
-) {
-  const userId = await validateSession(request);
-  if (values.id !== userId) throw new Error('You can only change your own password');
-  const user = await getUserById(values.id, { includeSensitive: true });
-  if (!user) throw new Error('User does not exist');
-  const isValid = await verifyPassword(
-    values.currentPassword,
-    (user as unknown as { password: string }).password,
-  );
-  if (!isValid) throw new Error('Current password is incorrect');
-  await changeUserPassword(user.id, values.newPassword);
-  return { success: true };
 }
 
 export async function getUsersByDepartmentController(request: Request, departmentId: string) {

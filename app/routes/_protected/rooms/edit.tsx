@@ -1,15 +1,14 @@
-import { useEffect } from 'react';
-import { Form, useLoaderData, useActionData, useNavigation, redirect, Link } from 'react-router';
+import { Form, useLoaderData, useNavigation, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Textarea } from '~/components/ui/textarea';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getRoomById, updateRoom, getRoomByIdRaw } from '~/lib/services/room.server';
 import { getCurrentUser } from '~/lib/current-user.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function loader({ params }: { params: { id: string } }) {
   const { room } = await getRoomById(params.id);
@@ -31,27 +30,20 @@ export async function action({ request, params }: { request: Request; params: { 
       capacity: Number(formData.get('capacity')),
       description: (formData.get('description') as string) || undefined,
     });
-    return redirect(`/rooms/${result.id}`);
+    return redirectWithToast(request, `/rooms/${result.id}`, {
+      type: 'info',
+      title: 'Room updated',
+      description: 'Room has been updated successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function EditRoom() {
   const { room } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
-  const actionError =
-    actionData && !(actionData instanceof Response)
-      ? ((actionData as Record<string, unknown>).message as string)
-      : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to update rooms', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:max-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
@@ -98,7 +90,6 @@ export default function EditRoom() {
             placeholder="Home description"
           />
         </div>
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>

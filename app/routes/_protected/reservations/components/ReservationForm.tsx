@@ -59,20 +59,19 @@ export default function ReservationForm({
     initialValues?.date ? new Date(initialValues.date) : new Date(),
   );
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(initialValues?.room ?? null);
+  const [prevInitialValues, setPrevInitialValues] = useState(initialValues);
   const fetcher = useFetcher();
   const isSubmitting = fetcher.state !== 'idle';
 
-  useEffect(() => {
+  if (initialValues !== prevInitialValues) {
+    setPrevInitialValues(initialValues);
     setSelectedDivisionId(initialValues?.organizerDivision ?? '');
     setSelectedDepartmentId(initialValues?.organizerDepartment ?? '');
-  }, [initialValues?.organizerDivision, initialValues?.organizerDepartment]);
+  }
 
   useEffect(() => {
     if (fetcher.data?.success === false) {
       toast.error(fetcher.data?.message || 'Failed to submit reservation');
-    }
-    if (fetcher.data?.success === true) {
-      toast.success('Successfully submitted reservation');
     }
   }, [fetcher.data]);
 

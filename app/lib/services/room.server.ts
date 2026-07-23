@@ -1,9 +1,8 @@
 import db from '~/lib/db';
-import { getUserById } from '~/lib/services/user.server';
 import { getAllFacility } from '~/lib/services/facility.server';
-import { validateSession, validateSessionWithRole } from '~/lib/session.server';
 
 import type { CreateRoomDTO, UpdateRoomDTO } from '~/lib/services/types';
+import { CurrentUser } from '~/lib/current-user.server';
 
 export async function getRoomByIdRaw(id: string) {
   return db.room.findUnique({
@@ -76,9 +75,12 @@ export async function removePersonInCharge(roomId: string, personInChargeId: str
   return null;
 }
 
-export async function isPersonInCharge(userId: string, roomId: string) {
+export async function isPersonInCharge(user: CurrentUser, roomId: string) {
   const pic = await db.roomPersonInCharge.findFirst({
-    where: { roomId, personInChargeId: userId },
+    where: {
+      roomId,
+      OR: [{ personInChargeId: user.id }, { personInCharge: { departmentId: user.departmentId } }],
+    },
   });
   return !!pic;
 }
@@ -90,15 +92,6 @@ export async function getRoomsByPersonInChargeQuery(userId: string) {
     },
     orderBy: { createdAt: 'desc' },
   });
-}
-
-export async function addRoom(
-  request: Request,
-  values: { name: string; location: string; capacity: number; description?: string },
-) {
-  const userId = await validateSession(request);
-  const newRoom = await createRoom({ ...values, createdBy: userId });
-  return { room: newRoom };
 }
 
 export async function getAllRooms() {
@@ -113,97 +106,6 @@ export async function getRoomById(id: string) {
   return { room };
 }
 
-export async function deleteRoom(request: Request, id: string) {
-  if (!id) throw new Error('Id is required');
-  const userId = await validateSession(request);
-  const currentRoom = await getRoomByIdRaw(id);
-  if (!currentRoom) throw new Error('Room does not exist');
-  if (currentRoom.createdBy !== userId)
-    throw new Error('FORBIDDEN: Cannot delete room created by another user.');
-  await deleteRoomById(id);
-  return { success: true };
-}
-
-export async function editRoom(
-  request: Request,
-  values: { id: string; name: string; location: string; capacity: number; description?: string },
-) {
-  if (!values.name) throw new Error('Name is required');
-  const userId = await validateSession(request);
-  const currentRoom = await getRoomByIdRaw(values.id);
-  if (!currentRoom) throw new Error('Room does not exist');
-  if (currentRoom.createdBy !== userId)
-    throw new Error('FORBIDDEN: Cannot edit room created by another user.');
-  const editedRoom = await updateRoom(values);
-  return { room: editedRoom };
-}
-
 export async function getAllFacilitiesForRoom() {
   return getAllFacility();
-}
-
-export async function addFacilityToRoomAction(
-  request: Request,
-  roomId: string,
-  facilityId: string,
-) {
-  const isSuperAdmin = await validateSessionWithRole('SUPERADMIN', request);
-  const room = await getRoomByIdRaw(roomId);
-  if (!room) throw new Error('Room does not exist');
-  if (!isSuperAdmin) throw new Error('FORBIDDEN: Cannot add facility to room.');
-  await addFacilityToRoom(roomId, facilityId);
-  return { success: true };
-}
-
-export async function removeFacilityFromRoomAction(
-  request: Request,
-  roomId: string,
-  facilityId: string,
-) {
-  const isSuperAdmin = await validateSessionWithRole('SUPERADMIN', request);
-  const room = await getRoomByIdRaw(roomId);
-  if (!room) throw new Error('Room does not exist');
-  if (!isSuperAdmin) throw new Error('FORBIDDEN: Cannot remove facility from room.');
-  await removeFacilityFromRoom(roomId, facilityId);
-  return { success: true };
-}
-
-export async function getRoomsByPersonInCharge(request: Request) {
-  const userId = await validateSession(request);
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-  if (user.role === 'SUPERADMIN') return getAllRoomsData();
-  return getRoomsByPersonInChargeQuery(userId);
-}
-
-export function validateRoomPersonInCharge(userId: string, roomId: string) {
-  return isPersonInCharge(userId, roomId);
-}
-
-export async function addPersonInChargeAction(
-  request: Request,
-  roomId: string,
-  personInChargeId: string,
-) {
-  const userId = await validateSession(request);
-  const isSuperAdmin = await validateSessionWithRole('SUPERADMIN', request);
-  const room = await getRoomByIdRaw(roomId);
-  if (!room) throw new Error('Room does not exist');
-  if (room.createdBy !== userId && !isSuperAdmin)
-    throw new Error('FORBIDDEN: Cannot add person in charge.');
-  await addPersonInCharge(roomId, personInChargeId);
-  return { success: true };
-}
-
-export async function removePersonInChargeAction(
-  request: Request,
-  roomId: string,
-  personInChargeId: string,
-) {
-  const isSuperAdmin = await validateSessionWithRole('SUPERADMIN', request);
-  const room = await getRoomByIdRaw(roomId);
-  if (!room) throw new Error('Room does not exist');
-  if (!isSuperAdmin) throw new Error('FORBIDDEN: Cannot remove person in charge');
-  await removePersonInCharge(roomId, personInChargeId);
-  return { success: true };
 }

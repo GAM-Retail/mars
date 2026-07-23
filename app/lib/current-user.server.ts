@@ -1,35 +1,26 @@
-import { validateSession, validateSessionWithRole } from '~/lib/session.server';
+import { validateSession } from '~/lib/session.server';
 import { getUserById } from '~/lib/services/user.server';
 
 import type { UserRole } from '~/generated/prisma/enums';
+import type { Department } from '~/generated/prisma/client';
 
 export interface CurrentUser {
   id: string;
-  role: 'SUPERADMIN' | 'ADMIN';
+  role: UserRole;
   name: string;
   email: string;
   nik: string;
   ext: string | null;
   divisionId: string | null;
   departmentId: string | null;
-  division: { id: string; name: string } | null;
-  department: { id: string; name: string } | null;
+  division: Department | null;
+  department: Department | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export async function getCurrentUser(request: Request): Promise<CurrentUser> {
   const userId = await validateSession(request);
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-  return user as CurrentUser;
-}
-
-export async function getCurrentUserWithRole(
-  requiredRole: UserRole | UserRole[],
-  request: Request,
-): Promise<CurrentUser> {
-  const userId = await validateSessionWithRole(requiredRole, request);
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   return user as CurrentUser;

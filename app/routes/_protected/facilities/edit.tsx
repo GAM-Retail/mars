@@ -1,10 +1,8 @@
-import { useEffect } from 'react';
-import { Form, useActionData, useNavigation, useLoaderData, redirect, Link } from 'react-router';
+import { Form, useNavigation, useLoaderData, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import {
   getFacilityById,
@@ -13,6 +11,7 @@ import {
 } from '~/lib/services/facility.server';
 import { getCurrentUser } from '~/lib/current-user.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function loader({ params }: { params: { id: string } }) {
   const { facility } = await getFacilityById(params.id);
@@ -32,27 +31,20 @@ export async function action({ request, params }: { request: Request; params: { 
       description: (formData.get('description') as string) || undefined,
       id: params.id,
     });
-    return redirect(`/facilities/${result.id}`);
+    return redirectWithToast(request, `/facilities/${result.id}`, {
+      type: 'success',
+      title: 'Facility updated',
+      description: 'Facility has been updated successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function EditFacility() {
   const { facility } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
-  const actionError =
-    actionData && !(actionData instanceof Response)
-      ? ((actionData as Record<string, unknown>).message as string)
-      : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to update facilities', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:min-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
@@ -83,7 +75,6 @@ export default function EditFacility() {
             placeholder="Facility description"
           />
         </div>
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Form, useActionData, useNavigation, redirect, Link, useLoaderData } from 'react-router';
+import { useState } from 'react';
+import { Form, useNavigation, Link, useLoaderData } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getOrganizationData } from '~/lib/services/division.server';
 import OrganizationCombobox from '~/components/OrganizationCombobox';
@@ -23,6 +22,7 @@ export async function loader() {
 import { createUser } from '~/lib/services/user.server';
 import { requireSuperAdmin } from '~/lib/current-user.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
@@ -38,29 +38,22 @@ export async function action({ request }: { request: Request }) {
       divisionId: (formData.get('divisionId') as string) || undefined,
       departmentId: (formData.get('departmentId') as string) || undefined,
     });
-    return redirect(`/users/${result.id}`);
+    return redirectWithToast(request, `/users/${result.id}`, {
+      type: 'success',
+      title: 'User created',
+      description: 'User has been created successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function NewUser() {
   const { divisions, departmentsByDivision } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
   const [selectedDivisionId, setSelectedDivisionId] = useState('');
   const [selectedDepartmentId, setSelectedDepartmentId] = useState('');
-  const actionError =
-    actionData && !(actionData instanceof Response)
-      ? ((actionData as Record<string, unknown>).message as string)
-      : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to create users', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:max-w-lg border rounded-md mx-auto my-4 p-4 flex gap-4 flex-col bg-secondary">
@@ -121,7 +114,6 @@ export default function NewUser() {
           <Label htmlFor="ext">Extension</Label>
           <Input id="ext" name="ext" placeholder="Optional extension number" />
         </div>
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>

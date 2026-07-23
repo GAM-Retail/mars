@@ -1,4 +1,4 @@
-import { useLoaderData, redirect, Link } from 'react-router';
+import { useLoaderData, Link } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { usePrefillOrganizerData } from '~/hooks/usePrefillOrganizerData';
 import ReservationForm from '~/routes/_protected/reservations/components/ReservationForm';
@@ -8,6 +8,7 @@ import { getAllRoomsData, getRoomsByPersonInChargeQuery } from '~/lib/services/r
 import { createReservationAction } from '~/lib/services/reservation.server';
 import { catchResult } from '~/lib/error/response.server';
 import { getOrganizationData } from '~/lib/services/division.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function loader({ request }: { request: Request }) {
   const user = await getCurrentUser(request);
@@ -34,9 +35,13 @@ export async function action({ request }: { request: Request }) {
       organizerDepartment: (formData.get('organizerDepartment') as string) || undefined,
       agenda: (formData.get('agenda') as string) || undefined,
     });
-    return redirect(`/reservations/${result.reservation.id}`);
+    return redirectWithToast(request, `/reservations/${result.reservation.id}`, {
+      type: 'success',
+      title: 'Reservation created',
+      description: 'Reservation created successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 

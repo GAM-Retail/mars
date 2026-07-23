@@ -2,6 +2,7 @@ import db from '~/lib/db';
 import { verifyPassword } from '~/lib/hash.server';
 import { getSession } from '~/lib/session.server';
 import { UserGetPayload } from '~/generated/prisma/models/User';
+import { CurrentUser } from '~/lib/current-user.server';
 
 export function validateNikOrEmail(
   value: unknown,
@@ -69,7 +70,7 @@ export async function login(
   };
 }
 
-export async function getUserSession(request?: Request) {
+export async function getUserSession(request?: Request): Promise<CurrentUser | null> {
   try {
     const session = await getSession(request?.headers.get('Cookie'));
     const userId = session.data.userId;
@@ -82,8 +83,8 @@ export async function getUserSession(request?: Request) {
     if (!user) return null;
     return {
       ...user,
-      division: user.division?.name ?? null,
-      department: user.department?.name ?? null,
+      division: user.division,
+      department: user.department,
     };
   } catch {
     return null;

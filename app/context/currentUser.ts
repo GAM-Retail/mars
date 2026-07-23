@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import type { CurrentUser } from '~/types';
+import { CurrentUser } from '~/lib/current-user.server';
 
 export type CurrentUserContextValue = {
   currentUser: CurrentUser | null;

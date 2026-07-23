@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useLoaderData, useFetcher, Link, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { useLoaderData, useFetcher, Link, data } from 'react-router';
 import {
   Calendar,
   Cog,
@@ -30,7 +30,6 @@ import { Badge } from '~/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '~/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '~/components/ui/popover';
 import { cn } from '~/lib/utils';
-import { toast } from 'sonner';
 
 import {
   getReservationById,
@@ -40,13 +39,22 @@ import {
 import { getCurrentUser } from '~/lib/current-user.server';
 import { isPersonInCharge } from '~/lib/services/room.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function loader({ request, params }: { request: Request; params: { id: string } }) {
   const user = await getCurrentUser(request);
-  const reservation = await getReservationById(params.id);
-  if (!reservation) throw new Error('Reservation does not exist');
+  const reservation = await getReservationById(user, params.id);
+  if (!reservation)
+    throw data(
+      {
+        message: 'The reservation you looking for is not exist.',
+        label: 'Reservation',
+        href: '/reservation',
+      },
+      { status: 404, statusText: 'Reservation not Found' },
+    );
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await isPersonInCharge(user.id, reservation.roomId);
+    const isPic = await isPersonInCharge(user, reservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   const logs = await getReservationLogsController(request, params.id);
@@ -56,29 +64,20 @@ export async function loader({ request, params }: { request: Request; params: { 
 export async function action({ request, params }: { request: Request; params: { id: string } }) {
   try {
     await deleteReservationAction(request, params.id);
-    return { success: true };
+    return redirectWithToast(request, '/reservations', {
+      type: 'info',
+      title: 'Reservation deleted',
+      description: 'Reservation has been deleted.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function ReservationDetails() {
   const { reservation, logs } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
-  const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
-
-  useEffect(() => {
-    if (fetcher.data?.success) {
-      toast.success('Reservation has been deleted');
-      navigate('/reservations', { replace: true });
-    }
-    if (fetcher.data?.success === false) {
-      const message = (fetcher.data as Record<string, unknown>).message as string | undefined;
-      toast.error('Failed to delete reservation', { description: message });
-      setDeleteOpen(false);
-    }
-  }, [fetcher.data, navigate]);
   const [activityOpen, setActivityOpen] = useState(false);
 
   const canModify = !reservation.deletedAt && new Date(reservation.endTime) > new Date();
@@ -433,7 +432,10 @@ export default function ReservationDetails() {
                 variant="destructive"
                 className="w-full text-white"
                 disabled={isDeleting}
-                onClick={() => fetcher.submit(res.id, { method: 'post' })}
+                onClick={async () => {
+                  await fetcher.submit(res.id, { method: 'post' });
+                  setDeleteOpen(false);
+                }}
               >
                 {isDeleting ? 'Deleting...' : 'Delete'}
               </Button>

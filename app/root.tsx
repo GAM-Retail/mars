@@ -1,18 +1,11 @@
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  isRouteErrorResponse,
-  useRouteError,
-} from 'react-router';
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router';
 import type { Route } from './+types/root';
 
 import { ThemeProvider } from '~/components/ThemeProvider';
 import './app.css';
 import { Toaster } from '~/components/ui/sonner';
 import { TooltipProvider } from '~/components/ui/tooltip';
+import { ErrorSection } from '~/components/ErrorSection';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
@@ -42,27 +35,11 @@ export function Layout(props: Readonly<{ children: React.ReactNode }>) {
   );
 }
 
-export function ErrorBoundary() {
-  const error = useRouteError();
-  let title = 'Something went wrong';
-  let message = 'An unexpected error occurred. Please try again.';
-
-  if (isRouteErrorResponse(error)) {
-    title = `${error.status} ${error.statusText}`;
-    message = error.data?.error ?? message;
-  } else if (error instanceof Error) {
-    title = 'Unexpected Error';
-    message = error.message;
-  }
-
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-4xl font-bold">{title}</h1>
-      <p className="text-muted-foreground">{message}</p>
-      <a href="/" className="text-primary underline">
-        Go to Home
-      </a>
-    </div>
+    <ThemeProvider>
+      <ErrorSection error={error} />
+    </ThemeProvider>
   );
 }
 

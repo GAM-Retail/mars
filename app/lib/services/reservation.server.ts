@@ -2,8 +2,8 @@ import db from '~/lib/db';
 import { dateTimeBuilder, validateSessionWithRole } from '~/lib/session.server';
 
 import { createOrUpdateOrganizer } from '~/lib/services/organizer.server';
-import { validateRoomPersonInCharge } from '~/lib/services/room.server';
-import { getCurrentUser, requireAdminOrSuperAdmin } from '~/lib/current-user.server';
+import { isPersonInCharge } from '~/lib/services/room.server';
+import { CurrentUser, requireAdminOrSuperAdmin } from '~/lib/current-user.server';
 import { sendReservationNotification } from '~/lib/notification.server';
 import { NotificationStatus, ReservationAction } from '~/generated/prisma/enums';
 import { CreateReservationDTO, UpdateReservationDTO } from '~/lib/services/types';
@@ -24,9 +24,12 @@ const reservationInclude = {
   organizer: { include: { department: true, division: true } },
 } as const;
 
-export async function getReservationById(id: string) {
+export async function getReservationById(user: CurrentUser, id: string) {
   return db.roomReservation.findUnique({
-    where: { id },
+    where: {
+      id,
+      OR: [{ reservedById: user.id }, { reservedBy: { departmentId: user.departmentId } }],
+    },
     include: reservationInclude,
   });
 }
@@ -40,7 +43,7 @@ export async function getAllReservations(includeDeleted?: boolean) {
 }
 
 export async function getReservationsByPersonInCharge(
-  userId: string,
+  user: CurrentUser,
   roomIds?: string[] | 'all',
   includeDeleted?: boolean,
 ) {
@@ -48,7 +51,14 @@ export async function getReservationsByPersonInCharge(
   return db.roomReservation.findMany({
     where: {
       ...(Array.isArray(roomIds) && { roomId: { in: roomIds } }),
-      reservedById: userId,
+      OR: [
+        { reservedById: user.id },
+        {
+          reservedBy: {
+            departmentId: user.departmentId,
+          },
+        },
+      ],
       ...(includeDeleted ? {} : { deletedAt: null }),
     },
     include: reservationInclude,
@@ -160,39 +170,6 @@ export const reservationMapper = (reservation: {
   deletedAt: reservation.deletedAt,
 });
 
-export async function getAllReservationsForCalendar(request: Request) {
-  const user = await requireAdminOrSuperAdmin(request);
-  if (user.role === 'SUPERADMIN') return await getAllReservations();
-  return await getReservationsByPersonInCharge(user.id);
-}
-
-export async function getAllReservationsByPersonInChargeQuery(
-  request: Request,
-  roomIds: string[] | 'all',
-  includeDeleted?: boolean,
-) {
-  const user = await getCurrentUser(request);
-  if (user.role === 'SUPERADMIN') {
-    const allReservations = await getReservationsByRoomIds(roomIds, includeDeleted);
-    return allReservations.map(reservationMapper);
-  }
-  await validateSessionWithRole('ADMIN', request);
-  const reservations = await getReservationsByPersonInCharge(user.id, roomIds, includeDeleted);
-  return reservations.map(reservationMapper);
-}
-
-export async function getReservationByIdController(request: Request, id: string) {
-  if (!id) throw new Error('Id is required');
-  const user = await getCurrentUser(request);
-  const reservation = await getReservationById(id);
-  if (!reservation) throw new Error('Reservation does not exist');
-  if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, reservation.roomId);
-    if (!isPic) throw new Error('You are not the person in charge for this rooms');
-  }
-  return { reservation };
-}
-
 export async function createReservationAction(
   request: Request,
   values: {
@@ -211,7 +188,7 @@ export async function createReservationAction(
 ) {
   const user = await requireAdminOrSuperAdmin(request);
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, values.roomId);
+    const isPic = await isPersonInCharge(user, values.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   const date = values.date.split('T')[0];
@@ -276,12 +253,12 @@ export async function updateReservationAction(
   },
 ) {
   const user = await requireAdminOrSuperAdmin(request);
-  const existingReservation = await getReservationById(values.id);
+  const existingReservation = await getReservationById(user, values.id);
   if (!existingReservation) throw new Error('Reservation does not exist');
   if (existingReservation.deletedAt) throw new Error('Cannot edit deleted reservations');
   if (existingReservation.endTime < new Date()) throw new Error('Cannot edit past reservations');
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, existingReservation.roomId);
+    const isPic = await isPersonInCharge(user, existingReservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   const startTime = dateTimeBuilder(values.date, values.startTime);
@@ -342,12 +319,12 @@ export async function updateReservationAction(
 
 export async function deleteReservationAction(request: Request, id: string) {
   const user = await requireAdminOrSuperAdmin(request);
-  const existingReservation = await getReservationById(id);
+  const existingReservation = await getReservationById(user, id);
   if (!existingReservation) throw new Error('Reservation does not exist');
   if (existingReservation.deletedAt) throw new Error('Reservation is already deleted');
   if (existingReservation.endTime < new Date()) throw new Error('Cannot delete past reservations');
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, existingReservation.roomId);
+    const isPic = await isPersonInCharge(user, existingReservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   await deleteReservation(id);
@@ -370,15 +347,6 @@ export async function deleteReservationAction(request: Request, id: string) {
     currentUser: { id: user.id, name: user.name, ext: user.ext },
   });
   return { success: true };
-}
-
-export async function getReservationsByRoom(request: Request, roomId: string) {
-  const user = await getCurrentUser(request);
-  if (user.role !== 'SUPERADMIN') {
-    const isPic = await validateRoomPersonInCharge(user.id, roomId);
-    if (!isPic) throw new Error('You are not the person in charge for this rooms');
-  }
-  return await getReservationsByRoomId(roomId);
 }
 
 export async function getPublicReservations() {

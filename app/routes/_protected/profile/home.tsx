@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Mail, Phone, Building2, Shield, User as UserIcon, Cog, CalendarPlus } from 'lucide-react';
 import {
   DropdownMenu,
@@ -17,23 +17,19 @@ import {
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Form, useActionData, useNavigation, useLoaderData, Link, useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 import { getCurrentUser } from '~/lib/current-user.server';
 import { getUserById, changeUserPassword } from '~/lib/services/user.server';
 import { verifyPassword } from '~/lib/hash.server';
 import { catchResult } from '~/lib/error/response.server';
+import { dataWithToast } from '~/lib/utils.server';
 
 export async function loader({ request }: { request: Request }) {
   const user = await getCurrentUser(request);
   return { user };
 }
 
-export async function action({
-  request,
-}: {
-  request: Request;
-}): Promise<{ success: true } | { success: false; message: string }> {
+export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
 
@@ -48,9 +44,17 @@ export async function action({
       );
       if (!isValid) throw new Error('Current password is incorrect');
       await changeUserPassword(user.id, formData.get('newPassword') as string);
-      return { success: true };
+      return dataWithToast(
+        request,
+        { success: true },
+        {
+          type: 'success',
+          title: 'Password changed',
+          description: 'Password changed successfully. You will be logged out shortly.',
+        },
+      );
     } catch (err) {
-      return catchResult(err);
+      return catchResult(request, err);
     }
   }
 
@@ -65,25 +69,9 @@ export default function Home() {
   const isSubmitting = navigation.state !== 'idle';
   const [passwordOpen, setPasswordOpen] = useState(false);
 
-  const actionError = useMemo(() => {
-    if (actionData && 'success' in actionData && !actionData.success && actionData.message) {
-      return actionData.message;
-    }
-    return undefined;
-  }, [actionData]);
-
   const actionSuccess = useMemo(() => {
     return !!(actionData && 'success' in actionData && actionData.success);
   }, [actionData]);
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to change password', { description: actionError });
-    }
-    if (actionSuccess) {
-      toast.success('Password changed successfully. You will be logged out shortly.');
-    }
-  }, [actionSuccess, actionError]);
 
   if (actionSuccess) {
     setTimeout(() => fetcher.submit(null, { action: '/logout', method: 'post' }), 3000);
@@ -265,7 +253,6 @@ export default function Home() {
                   placeholder="Min 6 characters"
                 />
               </div>
-              {actionError && <p className="text-sm text-destructive">{actionError}</p>}
               <div className="flex gap-2">
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? 'Changing...' : 'Change Password'}

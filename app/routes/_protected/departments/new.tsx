@@ -1,40 +1,32 @@
-import { useEffect } from 'react';
-import { Form, useActionData, useNavigation, redirect, Link } from 'react-router';
+import { Form, useNavigation, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { getCurrentUser } from '~/lib/current-user.server';
 import { createDepartment } from '~/lib/services/department.server';
 import { catchResult } from '~/lib/error/response.server';
+import { redirectWithToast } from '~/lib/utils.server';
 
 export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   try {
     await getCurrentUser(request);
     await createDepartment({ name: formData.get('name') as string });
-    return redirect('/departments');
+    return redirectWithToast(request, '/departments', {
+      type: 'success',
+      title: 'Department created',
+      description: 'Department has been created successfully.',
+    });
   } catch (err) {
-    return catchResult(err);
+    return catchResult(request, err);
   }
 }
 
 export default function NewDepartment() {
-  const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== 'idle';
-  const actionError =
-    actionData && !(actionData instanceof Response)
-      ? ((actionData as Record<string, unknown>).message as string)
-      : undefined;
-
-  useEffect(() => {
-    if (actionError) {
-      toast.error('Failed to create department', { description: actionError });
-    }
-  }, [actionError]);
 
   return (
     <div className="max-w-md sm:max-w-lg border rounded-md mx-auto mt-10 p-4 flex gap-4 flex-col bg-secondary">
@@ -50,7 +42,6 @@ export default function NewDepartment() {
           <Label htmlFor="name">Name</Label>
           <Input id="name" name="name" required placeholder="Department name" />
         </div>
-        {actionError && <p className="text-sm text-destructive">{actionError}</p>}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>

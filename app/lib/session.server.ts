@@ -1,6 +1,6 @@
 import { createCookieSessionStorage } from 'react-router';
 import db from '~/lib/db';
-import { UserRole } from '~/types';
+import { UserRole } from '~/generated/prisma/enums';
 
 const sessionSecret = process.env.SESSION_SECRET;
 
@@ -8,7 +8,15 @@ if (!sessionSecret) {
   throw new Error('SESSION_SECRET is required');
 }
 
+export type ToastFlash = {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  title: string;
+  description?: string;
+};
+
 type SessionFlashData = {
+  toast: ToastFlash;
   error: string;
 };
 

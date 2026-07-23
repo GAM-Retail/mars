@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { CurrentUserContext } from '~/context/currentUser';
-import type { CurrentUser } from '~/types';
+import { CurrentUser } from '~/lib/current-user.server';
 
 export default function CurrentUserProvider({
   currentUser,

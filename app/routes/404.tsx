@@ -1,13 +1,18 @@
-import { Link } from 'react-router';
+import { ErrorSection } from '~/components/ErrorSection';
+import { Route } from './+types/404';
 
-export default function NotFound() {
+export default function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-      <h1 className="text-4xl font-bold">404</h1>
-      <p className="text-muted-foreground">Page not found</p>
-      <Link to="/dashboard" className="text-primary underline">
-        Go Home
-      </Link>
-    </div>
+    <ErrorSection
+      error={error}
+      initialState={{
+        title: 'Page Not Found',
+        description: 'The page you are looking for does not exist.',
+        code: 404,
+        label: 'Go Home',
+        href: '/dashboard',
+      }}
+      allowRewrite={false}
+    />
   );
 }
