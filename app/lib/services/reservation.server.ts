@@ -42,15 +42,9 @@ export async function getAllReservations(includeDeleted?: boolean) {
   });
 }
 
-export async function getReservationsByPersonInCharge(
-  user: CurrentUser,
-  roomIds?: string[] | 'all',
-  includeDeleted?: boolean,
-) {
-  if (roomIds?.length === 0) return [];
+export async function getReservationsByPersonInCharge(user: CurrentUser, includeDeleted?: boolean) {
   return db.roomReservation.findMany({
     where: {
-      ...(Array.isArray(roomIds) && { roomId: { in: roomIds } }),
       OR: [
         { reservedById: user.id },
         {
