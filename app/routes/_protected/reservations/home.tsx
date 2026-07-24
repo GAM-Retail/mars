@@ -188,8 +188,9 @@ export default function ReservationList() {
           checked={includeDeleted}
           onChange={(e) => {
             setSearchParams((prev) => {
-              prev.set('includeDeleted', e.target.checked.toString());
-              return prev;
+              const next = new URLSearchParams(prev);
+              next.set('includeDeleted', String(e.target.checked));
+              return next;
             });
           }}
           className="h-4 w-4 rounded border-gray-300"
