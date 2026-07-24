@@ -1,4 +1,4 @@
-import { useLoaderData, Link } from 'react-router';
+import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { DataTable } from '~/components/DataTable';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { TableColumnHeader } from '~/components/ui/table-column-header';
@@ -30,13 +30,15 @@ import {
 } from '~/lib/services/reservation.server';
 import { getAllRoomsData, getRoomsByPersonInChargeQuery } from '~/lib/services/room.server';
 import { Room } from '~/generated/prisma/client';
+import type { Route } from './+types/home';
 
-export async function loader({ request }: { request: Request }) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireAdminOrSuperAdmin(request);
+  const includeDeleted = new URL(request.url).searchParams.get('includeDeleted') === 'true';
   const [reservationsData, rooms] = await Promise.all([
     user.role === 'SUPERADMIN'
-      ? getReservationsByRoomIds('all')
-      : getReservationsByPersonInCharge(user),
+      ? getReservationsByRoomIds('all', includeDeleted)
+      : getReservationsByPersonInCharge(user, includeDeleted),
     user.role === 'SUPERADMIN' ? getAllRoomsData() : getRoomsByPersonInChargeQuery(user.id),
   ]);
 
@@ -145,8 +147,8 @@ export default function ReservationList() {
   const [selectedRooms, setSelectedRooms] = useState<string[]>(
     rooms.map((r: { id: string }) => r.id),
   );
-  const [includeDeleted, setIncludeDeleted] = useState(false);
-
+  const [searchParams, setSearchParams] = useSearchParams();
+  const includeDeleted = searchParams.get('includeDeleted') === 'true';
   const filteredReservations = reservations.filter((r) => {
     if (!includeDeleted && r.deletedAt) return false;
     return !(selectedRooms.length > 0 && !selectedRooms.includes(r.roomId));
@@ -184,7 +186,13 @@ export default function ReservationList() {
         <input
           type="checkbox"
           checked={includeDeleted}
-          onChange={(e) => setIncludeDeleted(e.target.checked)}
+          onChange={(e) => {
+            setSearchParams((prev) => {
+              const next = new URLSearchParams(prev);
+              next.set('includeDeleted', String(e.target.checked));
+              return next;
+            });
+          }}
           className="h-4 w-4 rounded border-gray-300"
         />{' '}
         Show deleted reservations

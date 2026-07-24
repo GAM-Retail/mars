@@ -42,15 +42,9 @@ export async function getAllReservations(includeDeleted?: boolean) {
   });
 }
 
-export async function getReservationsByPersonInCharge(
-  user: CurrentUser,
-  roomIds?: string[] | 'all',
-  includeDeleted?: boolean,
-) {
-  if (roomIds?.length === 0) return [];
+export async function getReservationsByPersonInCharge(user: CurrentUser, includeDeleted?: boolean) {
   return db.roomReservation.findMany({
     where: {
-      ...(Array.isArray(roomIds) && { roomId: { in: roomIds } }),
       OR: [
         { reservedById: user.id },
         {
@@ -261,8 +255,9 @@ export async function updateReservationAction(
     const isPic = await isPersonInCharge(user, existingReservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
-  const startTime = dateTimeBuilder(values.date, values.startTime);
-  const endTime = dateTimeBuilder(values.date, values.endTime);
+  const date = values.date.split('T')[0];
+  const startTime = dateTimeBuilder(date, values.startTime);
+  const endTime = dateTimeBuilder(date, values.endTime);
   if (startTime >= endTime) throw new Error('End time must be after start time');
   const overlapping = await checkOverlappingReservations(
     values.roomId,
