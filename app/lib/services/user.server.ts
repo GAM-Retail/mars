@@ -71,13 +71,14 @@ export async function deleteUser(id: string, actorId: string) {
 }
 
 // Active reservations mean that the reservation is not started yet
-export async function checkUserActiveReservations(id: string) {
+export async function checkUserActiveReservations(userId: string) {
   const reservationIds = await db.roomReservation.findMany({
     where: {
-      reservedById: id,
+      reservedById: userId,
       endTime: {
         gte: new Date(),
       },
+      deletedAt: null,
     },
     select: { id: true },
   });
