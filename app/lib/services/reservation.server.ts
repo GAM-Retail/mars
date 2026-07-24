@@ -261,8 +261,9 @@ export async function updateReservationAction(
     const isPic = await isPersonInCharge(user, existingReservation.roomId);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
-  const startTime = dateTimeBuilder(values.date, values.startTime);
-  const endTime = dateTimeBuilder(values.date, values.endTime);
+  const date = values.date.split('T')[0];
+  const startTime = dateTimeBuilder(date, values.startTime);
+  const endTime = dateTimeBuilder(date, values.endTime);
   if (startTime >= endTime) throw new Error('End time must be after start time');
   const overlapping = await checkOverlappingReservations(
     values.roomId,

@@ -18,9 +18,9 @@ export async function loader({ request, params }: { request: Request; params: { 
     getOrganizationData(),
   ]);
   if (!reservationResult) throw new Error('Reservation does not exist');
-  const dateStr = new Date(reservationResult.startTime).toISOString().split('T')[0];
-  const startTime = new Date(reservationResult.startTime).toTimeString().slice(0, 5);
-  const endTime = new Date(reservationResult.endTime).toTimeString().slice(0, 5);
+  const dateStr = new Date(reservationResult.startTime).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const startTime = new Date(reservationResult.startTime).toLocaleTimeString('sv-SE', { timeZone: 'Asia/Jakarta' }).slice(0, 5);
+  const endTime = new Date(reservationResult.endTime).toLocaleTimeString('sv-SE', { timeZone: 'Asia/Jakarta' }).slice(0, 5);
 
   return {
     reservation: reservationResult,
