@@ -5,7 +5,6 @@ import { SidebarProvider, SidebarRail, SidebarTrigger } from '~/components/ui/si
 import { AppSidebar } from '~/components/AppSidebar';
 import { Separator } from '~/components/ui/separator';
 import { Toaster } from '~/components/ui/sonner';
-import { toast } from 'sonner';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,24 +13,14 @@ import {
   BreadcrumbSeparator,
 } from '~/components/ui/breadcrumb';
 import Loading from '~/components/Loading';
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { ErrorSection } from '~/components/ErrorSection';
 import { Route } from './+types/protected';
-import { commitSession, getSession } from '~/lib/session.server';
 
 export async function loader({ request }: { request: Request }) {
   const user = await getUserSession(request);
   if (!user) throw redirect('/login');
-  const session = await getSession(request.headers.get('Cookie'));
-  const toast = session.get('toast');
-  return data(
-    { user, toast },
-    {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    },
-  );
+  return data({ user });
 }
 
 function generateBreadcrumbs(pathname: string) {
@@ -43,17 +32,9 @@ function generateBreadcrumbs(pathname: string) {
 }
 
 export default function ProtectedLayout({ children }: Readonly<{ children?: React.ReactNode }>) {
-  const { user, toast: flashToast } = useLoaderData<typeof loader>();
+  const { user } = useLoaderData<typeof loader>();
   const location = useLocation();
   const breadcrumbs = generateBreadcrumbs(location.pathname);
-  useEffect(() => {
-    if (!flashToast) return;
-
-    toast[flashToast.type](flashToast.title, {
-      id: flashToast.id,
-      description: flashToast.description,
-    });
-  }, [flashToast]);
 
   return (
     <>
