@@ -55,13 +55,16 @@ export async function login(
     where: type === 'nik' ? { nik: nikOrEmail } : { email: nikOrEmail },
   });
   if (!user) {
-    throw new Error('User not found');
+    return {
+      user: null,
+      message: 'Unable to sign in. Please check your credentials and try again.',
+    };
   }
   const isValid = await verifyPassword(password, user.password);
   if (!isValid) {
     return {
       user: null,
-      message: 'Incorrect password, please try again',
+      message: 'Unable to sign in. Please check your credentials and try again.',
     };
   }
   const { password: _, ...userWithoutPassword } = user;
