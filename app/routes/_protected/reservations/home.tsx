@@ -2,7 +2,6 @@ import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { DataTable } from '~/components/DataTable';
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { TableColumnHeader } from '~/components/ui/table-column-header';
-import { TableRowActions } from '~/components/ui/table-row-actions';
 import RoomsFilter from '~/components/RoomsFilter';
 import { Button } from '~/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -135,7 +134,11 @@ const columns: ColumnDef<ReservationRow>[] = [
   },
   {
     id: 'actions',
-    cell: (props) => <TableRowActions row={props.row} />,
+    cell: (props) => (
+      <Button variant="ghost" size="sm" asChild>
+        <Link to={`/reservations/${props.row.original.id}`}>Detail</Link>
+      </Button>
+    ),
   },
 ];
 
