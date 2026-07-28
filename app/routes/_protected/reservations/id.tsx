@@ -37,7 +37,6 @@ import {
   deleteReservationAction,
 } from '~/lib/services/reservation.server';
 import { getCurrentUser } from '~/lib/current-user.server';
-import { isPersonInCharge } from '~/lib/services/room.server';
 import { catchResult } from '~/lib/error/response.server';
 import { redirectWithToast } from '~/lib/utils.server';
 
@@ -49,14 +48,10 @@ export async function loader({ request, params }: { request: Request; params: { 
       {
         message: 'The reservation you looking for is not exist.',
         label: 'Reservation',
-        href: '/reservation',
+        href: '/reservations',
       },
       { status: 404, statusText: 'Reservation not Found' },
     );
-  if (user.role !== 'SUPERADMIN') {
-    const isPic = await isPersonInCharge(user, reservation.roomId);
-    if (!isPic) throw new Error('You are not the person in charge for this rooms');
-  }
   const logs = await getReservationLogsController(request, params.id);
   return { reservation, logs };
 }
