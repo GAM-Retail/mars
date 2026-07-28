@@ -1,4 +1,4 @@
-import { useLoaderData } from 'react-router';
+import { data, useLoaderData } from 'react-router';
 import { DataTable } from '~/components/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -12,7 +12,18 @@ export async function loader({ request, params }: { request: Request; params: { 
   const user = await getCurrentUser(request);
   if (user.role !== 'SUPERADMIN') {
     const isPic = await isPersonInCharge(user, params.id);
-    if (!isPic) throw new Error('You are not the person in charge for this rooms');
+    if (!isPic)
+      throw data(
+        {
+          message: 'You are not the person in charge for this room',
+          label: 'My Rooms',
+          href: '/my-rooms',
+        },
+        {
+          status: 403,
+          statusText: 'Forbidden',
+        },
+      );
   }
   const { room } = await getRoomById(params.id);
   const reservations = await getReservationsByRoomId(params.id);
