@@ -28,7 +28,9 @@ export async function getReservationById(user: CurrentUser, id: string) {
   return db.roomReservation.findUnique({
     where: {
       id,
-      OR: [{ reservedById: user.id }, { reservedBy: { departmentId: user.departmentId } }],
+      ...(user.role !== 'SUPERADMIN'
+        ? { OR: [{ reservedById: user.id }, { reservedBy: { departmentId: user.departmentId } }] }
+        : {}),
     },
     include: reservationInclude,
   });
