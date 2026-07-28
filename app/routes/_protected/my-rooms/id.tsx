@@ -11,7 +11,7 @@ import { getCurrentUser } from '~/lib/current-user.server';
 export async function loader({ request, params }: { request: Request; params: { id: string } }) {
   const user = await getCurrentUser(request);
   if (user.role !== 'SUPERADMIN') {
-    const isPic = await isPersonInCharge(user.id, params.id);
+    const isPic = await isPersonInCharge(user, params.id);
     if (!isPic) throw new Error('You are not the person in charge for this rooms');
   }
   const { room } = await getRoomById(params.id);
