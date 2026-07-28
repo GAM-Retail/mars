@@ -1,37 +1,48 @@
 import { useFetcher, redirect, Link } from 'react-router';
 import { Button } from '~/components/ui/button';
-import { toast } from 'sonner';
 import { loginAction } from '~/lib/auth.server';
-import { useEffect } from 'react';
 import { commitSession, getSession } from '~/lib/session.server';
 import { Separator } from '~/components/ui/separator';
+import { dataWithToast } from '~/lib/utils.server';
+import { catchResult } from '~/lib/error/response.server';
 
 export async function action({ request }: { request: Request }) {
-  const session = await getSession(request.headers.get('Cookie'));
-  const formData = await request.formData();
-  const result = await loginAction(formData);
-  if (!result.success) {
-    return { error: result.error };
-  }
+  try {
+    const session = await getSession(request.headers.get('Cookie'));
+    const formData = await request.formData();
+    const result = await loginAction(formData);
+    if (!result.success) {
+      return dataWithToast(
+        request,
+        { error: result.error },
+        {
+          type: 'info',
+          title: result.error,
+        },
+      );
+    }
 
-  session.set('userId', result.user.id);
-  return redirect('/', {
-    headers: {
-      'Set-Cookie': await commitSession(session),
-    },
-  });
+    session.set('userId', result.user.id);
+    return redirect('/', {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
+  } catch (err) {
+    return catchResult(request, err);
+  }
 }
 
 export default function Login() {
   const fetcher = useFetcher<typeof action>();
   const isSubmitting = fetcher.state !== 'idle';
 
-  const error = fetcher.data?.error;
-  useEffect(() => {
-    if (error) {
-      toast.error('Login failed', { description: error });
-    }
-  }, [error]);
+  const error = (fetcher.data as unknown as { error?: string })?.error;
+  // useEffect(() => {
+  //   if (error) {
+  //     toast.error('Login failed', { description: error });
+  //   }
+  // }, [error]);
 
   return (
     <main className="w-full h-screen flex">
