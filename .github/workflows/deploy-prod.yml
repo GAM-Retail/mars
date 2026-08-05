@@ -48,11 +48,6 @@ jobs:
             UserKnownHostsFile ~/.ssh/known_hosts
           EOF
           chmod 600 ~/.ssh/config
-          
-      - name: Add server to known_hosts
-        run: |
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} \
-            ${{ secrets.HOST }} >> ~/.ssh/known_hosts
       
       - name: Verify SSH Login
         run: |
@@ -67,7 +62,6 @@ jobs:
       - name: Build and Deploy
         env:
           DOCKER_HOST: ssh://${{ secrets.USERNAME }}@${{ secrets.HOST }}:${{ secrets.SSH_PORT }}
-          COMPOSE_PARALLEL_LIMIT: 1
 
           DATABASE_URL: ${{ vars.DATABASE_URL }}
           SHADOW_DATABASE_URL: ${{ vars.SHADOW_DATABASE_URL }}
