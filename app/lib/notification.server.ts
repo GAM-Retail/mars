@@ -202,6 +202,7 @@ export async function sendReservationNotification(
 
   if (!validatePhone(organizer.phone)) {
     consoleLog('warn', 'Skipping notification - organizer has invalid phone', {
+      reservationId,
       organizerPhone: organizer.phone,
       organizerNik: organizer.nik,
     });
