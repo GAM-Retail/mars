@@ -1,7 +1,7 @@
-import { format } from 'date-fns';
-
+import { format, transpose } from 'date-fns';
+import { tz } from '@date-fns/tz';
 function formatDate(date: Date): string {
-  return format(date, 'dd MMMM yyyy');
+  return format(transpose(date, tz('Asia/Jakarta')), 'dd MMMM yyyy');
 }
 
 function formatTimeRange(startTime: Date, endTime: Date): string {
@@ -52,10 +52,12 @@ export function buildReservationMessage(data: MessageData): string {
   }
 
   if (status === 'Cancelled') {
-    message += '\nIf this cancellation was not intended, please contact the Secretariat to arrange a new booking.\n';
+    message +=
+      '\nIf this cancellation was not intended, please contact the Secretariat to arrange a new booking.\n';
   }
 
-  message += '\nIf you would like to reschedule or cancel this booking, please contact the Secretariat directly.\n';
+  message +=
+    '\nIf you would like to reschedule or cancel this booking, please contact the Secretariat directly.\n';
   message += 'You can view your booking here:\n';
   message += `${process.env.APP_URL || 'http://localhost:3000'} (This website is only accessible from the internal network.)\n`;
   message += '\nRegards,\n';
